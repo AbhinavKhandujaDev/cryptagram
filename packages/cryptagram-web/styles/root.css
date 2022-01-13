@@ -1,0 +1,57 @@
+body {
+    --color-theme: white;
+    --color-theme-tinted: #ECEFF1;
+    --color-theme-opp: #18191A;
+    /* --color-theme: #ECEFF1;
+    --color-theme-opp: #212121; */
+
+    --color-prime: #0d6efd;
+    --color-sec: #6c757d;
+
+    --border-color: #CFD8DC;
+
+    --text-color: #3B3B3B;
+
+    --shadow-color: rgba(0, 0, 0, .20);
+
+    background: #ECEFF1 !important;
+}
+
+body.dark {
+    --color-theme: #18191A;
+    --color-theme-tinted: #212121;
+    --color-theme-opp: #F0F2F5;
+    /* --color-theme: #212121;
+    --color-theme-opp: #ECEFF1; */
+
+    --color-prime: #0d6efd;
+    --color-sec: #6c757d;
+
+    --border-color: #CFD8DC;
+
+    --text-color: #ECEFF1;
+
+    --shadow-color: rgba(255, 255, 255, 0.20);
+
+    background: #212121 !important;
+
+}
+
+.text-color {
+    color: var(--text-color)
+}
+
+label {
+    color: var(--text-color) !important;
+}
+.text-color-theme {
+    color: var(--text-color) !important;
+}
+
+.border, .border-bottom, .border-start, .border-end {
+    border-color: var(--border-color) !important
+}
+
+.shadow {
+    box-shadow: 0 0 3rem var(--shadow-color) !important;
+}

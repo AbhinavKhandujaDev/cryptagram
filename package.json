@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "lerna": "^4.0.0"
+  },
+  "scripts": {
+    "dev": "lerna run dev",
+    "dev-web": "lerna run dev --scope=cryptagram",
+    "dev-server": "lerna run dev --scope=cryptagram-backend",
+    "new-version": "lerna version --conventional-commits --yes",
+    "diff": "lerna diff"
+  },
+  "name": "cryptagram"
+}
