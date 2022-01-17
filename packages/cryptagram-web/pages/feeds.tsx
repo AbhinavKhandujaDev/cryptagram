@@ -80,6 +80,7 @@ const Feeds: NextPage = (props: any) => {
             posts: prev.posts.map((p: any) => {
               if (p._id === post._id) {
                 var np = { ...p };
+                
                 np.comments.push(resp.data);
               }
               return p._id === post._id ? np : p;

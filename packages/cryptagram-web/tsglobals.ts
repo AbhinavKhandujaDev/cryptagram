@@ -1,6 +1,7 @@
 import type Web3 from "web3";
 declare global {
   interface Window {
+    dates: { [key: string]: string };
     web3: Web3;
     ethereum: any;
     api: (url: string, data?: any) => Promise<any>;

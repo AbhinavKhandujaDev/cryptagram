@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { memo, useState, useMemo } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo, useState, useMemo } from "react";
+import { getTimeAgo } from "../helper";
 
 interface PostProps {
   post: any;
@@ -78,9 +78,13 @@ const Post = ({
 }: PostProps) => {
   const [state, setState] = useState({
     comment: "",
+    timeAgo: "",
   });
+  useEffect(() => {
+    setState({ ...state, timeAgo: getTimeAgo(post.date) });
+  }, []);
   const inputRef = useRef<HTMLInputElement>(null);
-  // const pliked = useMemo(() => post.liked, [post.liked]);
+  // const timeAgo = useMemo(() => getTimeAgo(post.date), [post.date]);
   // const pbookmarked = useMemo(() => post.bookmarked, [post.bookmarked]);
   const iconCls = useMemo(() => {
     return `pointer fs-4 text-${nightmode ? "white" : "dark"} bi`;
@@ -99,7 +103,7 @@ const Post = ({
             <div className="d-flex flex-column justify-content-start ms-2">
               <label className="fw-bold">{post.fromName}</label>
               <label style={{ fontSize: "12px" }} className="text-muted">
-                2 days ago
+                {state.timeAgo}
               </label>
             </div>
           </div>
