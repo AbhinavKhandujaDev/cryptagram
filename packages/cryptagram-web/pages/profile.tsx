@@ -32,18 +32,21 @@ const Profile: NextPage = (props: any) => {
             </label>
           </div>
         </div>
-        <div className="flex-grow-1 row mb-3 flex-center-h">
-          {posts.map((post: any) => (
+        <div
+          style={{ gap: "1rem" }}
+          className="flex-grow-1 row mb-3 flex-center-h"
+        >
+          {posts.map((post: any, i: number) => (
             <div
               key={post._id}
-              className="col-4 m-0 p-1 bg-theme-tinted overflow-hidden"
+              className="col-3 m-0 p-1 bg-theme-tinted overflow-hidden rounded-3"
             >
               <img
                 style={{ objectFit: "cover" }}
                 width="100%"
                 className="w-100"
                 // src="https://i.pravatar.cc"
-                src={`https://ipfs.infura.io/ipfs/${post.postUrl}`}
+                src={post.postUrl}
               />
             </div>
           ))}

@@ -27,7 +27,8 @@ body.dark {
     --color-prime: #0d6efd;
     --color-sec: #6c757d;
 
-    --border-color: #CFD8DC;
+    /* --border-color: #a0a7ab; */
+    --border-color: #757575;
 
     --text-color: #ECEFF1;
 
@@ -44,11 +45,12 @@ body.dark {
 label {
     color: var(--text-color) !important;
 }
+
 .text-color-theme {
     color: var(--text-color) !important;
 }
 
-.border, .border-bottom, .border-start, .border-end {
+.border, .border-bottom, .border-start, .border-end, .border-top {
     border-color: var(--border-color) !important
 }
 

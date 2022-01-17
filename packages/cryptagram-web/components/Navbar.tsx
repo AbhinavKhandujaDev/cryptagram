@@ -19,18 +19,18 @@ const NavIcon = memo((props: any) => {
     <Link href={to}>
       <div className={`flex-center-c pointer`}>
         <Image
-          width={30}
-          height={30}
+          width={25}
+          height={25}
           src={`/images/${imagePath + selected}.png`}
           className={imageClass}
         />
-        <label
+        {/* <label
           className={`${
             selected === "-selected" ? "text-primary" : "text-muted"
           } fw-bold`}
         >
           {text}
-        </label>
+        </label> */}
       </div>
     </Link>
   );
@@ -39,10 +39,15 @@ const NavIcon = memo((props: any) => {
 const Navbar = (props: NavbarProps) => {
   const { switchTheme, nightmode, status } = props;
   return (
-    <nav className="flex-center-h w-100 bg-theme px-4 py-2 position-fixed border-bottom justify-content-between">
-      <label style={{ width: "150px" }} className="fw-bold fs-3">
-        Cryptagram
-      </label>
+    <nav
+      style={{ height: "50px" }}
+      className="flex-center-h w-100 bg-theme px-4 position-fixed border-bottom justify-content-between"
+    >
+      <Link href="/feeds">
+        <label style={{ width: "150px" }} className="fw-bold fs-4">
+          Cryptagram
+        </label>
+      </Link>
       <div className="flex-center-h d-none d-md-flex justify-content-between col-6">
         <NavIcon
           to="/feeds"

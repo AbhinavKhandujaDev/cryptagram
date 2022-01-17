@@ -1,85 +1,118 @@
-import type { NextPage, GetServerSidePropsContext } from "next";
-import { memo } from "react";
-import Image from "next/image";
+import type { NextPage } from "next";
+import { memo, useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { api } from "../helper";
+import { Post } from "../components";
 
-interface PostProps {
-  post: any;
-}
-
-const Post = memo(({ post }: PostProps) => {
-  return (
-    <div className="w-100 overflow-hidden">
-      <div className="post card bg-theme my-3">
-        <div className="card-header flex-center-h justify-content-between bg-theme">
-          <div className="flex-center-h">
-            <Image
-              className="rounded-circle"
-              width={40}
-              height={40}
-              src="https://i.pravatar.cc/40"
-            />
-            <div className="d-flex flex-column justify-content-start ms-2">
-              <label className="fw-bold">{post.fromName}</label>
-              <label className="text-muted">2 days ago</label>
-            </div>
-          </div>
-          <div className="d-flex btn">
-            <div
-              style={{ width: 6 }}
-              className="ratio-eq rounded-circle bg-theme-opp"
-            />
-            <div
-              style={{ width: 6 }}
-              className="ratio-eq rounded-circle bg-theme-opp mx-1"
-            />
-            <div
-              style={{ width: 6 }}
-              className="ratio-eq rounded-circle bg-theme-opp"
-            />
-          </div>
-        </div>
-        <div className="card-body flex-center-v bg-theme">
-          <img
-            className="flex-grow-1 w-100 ratio-eq rounded-3"
-            // src="https://source.unsplash.com/random/user"
-            // src={`${process.env.MEDIA_BASE_URL}/${post.postUrl}`}
-            src={`https://ipfs.infura.io/ipfs/${post.postUrl}`}
-          />
-          <label className="fw-bold fs-6 mt-2">{post.caption}</label>
-        </div>
-        <div className="card-footer"></div>
-      </div>
+const CreateButton = memo(({ nightmode }: any) => (
+  <Link href="/create">
+    <div
+      style={{
+        top: "100%",
+        transform: "translateY(-200%)",
+        width: "45px",
+        right: "20px",
+      }}
+      className="flex-center-h ratio-eq position-fixed pointer d-none d-md-flex p-2"
+    >
+      <img
+        className="w-100 h-100 shadow"
+        src={`/images/add${nightmode ? "" : "-selected"}.png`}
+      />
     </div>
-  );
-});
+  </Link>
+));
 
 const Feeds: NextPage = (props: any) => {
-  const { posts = [] } = props;
+  const { posts = [], nightmode } = props;
+  const [state, setstate] = useState({
+    posts: posts,
+  });
+
+  const liked = useCallback(async (post: any) => {
+    let resp = await api(
+      `api/post/likeunlike?id=${post._id}&unlike=${post.liked}`
+    );
+    if (resp.success) {
+      setstate((prev) => {
+        return {
+          ...prev,
+          posts: prev.posts.map((p: any) => {
+            if (p._id === post._id) {
+              var np = { ...p, liked: !p.liked };
+            }
+            return p._id === post._id ? np : p;
+          }),
+        };
+      });
+    }
+  }, []);
+
+  const savePost = useCallback(async (post: any) => {
+    let resp = await api(
+      `api/post/bookmarkPost?postId=${post._id}&unsave=${post.bookmarked}`
+    );
+    if (resp.success) {
+      setstate((prev) => {
+        return {
+          ...prev,
+          posts: prev.posts.map((p: any) => {
+            if (p._id === post._id) {
+              var np = { ...p, bookmarked: !p.bookmarked };
+            }
+            return p._id === post._id ? np : p;
+          }),
+        };
+      });
+    }
+  }, []);
+
+  const comment = useCallback(
+    async (post: any, remove?: boolean, comment?: string) => {
+      let resp = await api(
+        `api/post/comment?postId=${post._id}&remove=${remove}`,
+        { body: { comment: comment } }
+      );
+      if (resp.success) {
+        setstate((prev) => {
+          return {
+            ...prev,
+            posts: prev.posts.map((p: any) => {
+              if (p._id === post._id) {
+                var np = { ...p };
+                np.comments.push(resp.data);
+              }
+              return p._id === post._id ? np : p;
+            }),
+          };
+        });
+      }
+    },
+    []
+  );
+
   return (
     <div id="feeds" className="py-5 flex-center-h">
-      <div className="col-12 col-sm-10 col-md-6 col-lg-4 py-3 d-flex flex-column align-items-center ">
-        {posts.map((post: any) => (
-          <Post key={post._id} post={post} />
-        ))}
-      </div>
-      <Link href="/create">
-        <div
-          style={{
-            top: "100%",
-            transform: "translateY(-200%)",
-            width: "45px",
-            right: "20px",
-          }}
-          className="flex-center-h ratio-eq position-fixed pointer d-none d-md-flex p-2"
-        >
-          <img
-            className="w-100 h-100 shadow"
-            src={`/images/add${props.nightmode ? "" : "-selected"}.png`}
+      <div className="col-12 col-sm-8 col-md-6 col-lg-4 py-3 d-flex flex-column align-items-center ">
+        {state.posts.map((post: any, i: number) => (
+          <Post
+            key={post._id}
+            post={post}
+            nightmode={nightmode}
+            postliked={liked}
+            postSaved={savePost}
+            comment={comment}
           />
-        </div>
-      </Link>
+        ))}
+        {/* <List
+          items={getItems()}
+          nightmode={nightmode}
+          liked={liked}
+          savePost={savePost}
+          comment={comment}
+        /> */}
+      </div>
+      <CreateButton nightmode={nightmode} />
     </div>
   );
 };
@@ -101,4 +134,4 @@ export async function getServerSideProps() {
   };
 }
 
-export default Feeds;
+export default memo(Feeds);

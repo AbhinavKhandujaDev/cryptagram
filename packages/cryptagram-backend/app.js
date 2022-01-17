@@ -13,9 +13,11 @@ app.use(express.json());
 app.use(cors({ origin: `http://localhost:${process.env.PORT}` }));
 app.use(express.urlencoded({ extended: true }));
 
+const { authMiddleware } = require("./middlewares");
+
 const { postRoute, userRoute } = require("./routes");
 
-app.use("/api/posts", postRoute);
+app.use("/api/posts", authMiddleware, postRoute);
 app.use("/api/user", userRoute);
 
 app.listen(process.env.PORT, () => console.log("Server started..."));

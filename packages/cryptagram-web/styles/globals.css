@@ -16,6 +16,10 @@ a {
   position: relative;
 }
 
+.link:hover {
+  text-decoration: underline;
+}
+
 nav, footer {
   z-index: 100;
 }

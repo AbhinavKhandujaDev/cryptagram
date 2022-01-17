@@ -47,13 +47,14 @@ const Create: NextPage = () => {
     reader.onloadend = async () => {
       if (reader.result) {
         let src = window.urlSource(URL.createObjectURL(state?.media));
+        // let src = window.urlSource(`https://ipfs.io/images/ipfs-logo.svg`);
         setstate({ ...state, isUploading: true });
         let fileData = await window.ipfs.add(src);
         let hash = fileData.cid.toV1().toString();
-
-        api("/api/post/savePost", {
+        api("/api/post/createPost", {
           body: {
-            postUrl: hash,
+            // postUrl: `https://ipfs.infura.io/ipfs/${hash}`,
+            postUrl: `https://ipfs.io/ipfs/${hash}`,
             postType: state?.media.type,
             caption: state?.caption,
           },

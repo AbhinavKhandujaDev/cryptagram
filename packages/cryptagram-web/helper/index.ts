@@ -1,5 +1,5 @@
 export const api = async (url: string, data?: any) => {
-  data.method = !data.method ? "post" : data.method;
+  data = { method: "post", ...data };
   data.body = data.body ? JSON.stringify(data.body) : data.body;
   let resp = await fetch(url, data);
   if (resp.ok) {
