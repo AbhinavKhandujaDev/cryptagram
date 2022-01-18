@@ -5,9 +5,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  let body = JSON.parse(req.body);
   try {
-    let id = req.query.id ? req.query.id : "";
-    let resp = await axios.get(`${process.env.BASE_URL}/api/posts/${id}`);
+    let resp = await axios.post(`${process.env.BASE_URL}/posts`, body);
     let resData = resp.data.data;
     return res.send({ success: true, data: resData });
   } catch (error: any) {

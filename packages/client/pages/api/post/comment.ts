@@ -6,9 +6,11 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
+    let body = JSON.parse(req.body);
     let config: AxiosRequestConfig<any> = {
-      method: req.query.unsave === "true" ? "delete" : "post",
-      url: `${process.env.BASE_URL}/api/posts/bookmark/${req.query.postId}`,
+      method: req.query.remove === "true" ? "delete" : "post",
+      url: `${process.env.BASE_URL}/posts/comment/${req.query.postId}`,
+      data: { comment: body.comment },
     };
     let resp = await axios(config);
     let resData = resp.data.data;

@@ -7,31 +7,31 @@ const BottomNav = memo((props: any) => {
     <div {...divProps}>
       <Link href="feeds">
         <img
-          width="30px"
+          width="28px"
           className="ratio-eq pointer"
-          src={`./images/feed${status?.feeds}.png`}
+          src={`/images/feed${status?.feeds}.png`}
         />
       </Link>
       <Link href="wallet">
         <img
-          width="30px"
+          width="28px"
           className="ratio-eq pointer"
-          src={`./images/wallet${status?.wallet}.png`}
+          src={`/images/wallet${status?.wallet}.png`}
         />
       </Link>
       <Link href="create">
         <img
-          width="30px"
+          width="28px"
           className="ratio-eq p-1 pointer"
-          src={`./images/add${status?.create}.png`}
+          src={`/images/add${status?.create}.png`}
         />
       </Link>
-      <img width="30px" className="ratio-eq pointer" src="./images/nft.png" />
+      <img width="28px" className="ratio-eq pointer" src="/images/nft.png" />
       <Link href="profile">
         <img
-          width="30px"
+          width="28px"
           className="ratio-eq pointer"
-          src={`./images/user${status?.profile}.png`}
+          src={`/images/user${status?.profile}.png`}
         />
       </Link>
     </div>

@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { useEffect, useRef, memo, useState, useMemo } from "react";
 import { getTimeAgo } from "../helper";
+import { DropdownButton } from ".";
+import router from "next/router";
 
 interface PostProps {
   post: any;
@@ -93,21 +95,24 @@ const Post = ({
     <div className="w-100 overflow-hidden">
       <div className="post card bg-theme my-3">
         <div className="card-header flex-center-h justify-content-between bg-theme">
-          <div className="flex-center-h">
+          <div
+            className="flex-center-h"
+            onClick={() => router.push(`/profile/${post.fromName}`)}
+          >
             <Image
-              className="rounded-circle"
+              className="rounded-circle pointer"
               width={40}
               height={40}
               src="https://i.pravatar.cc/40"
             />
             <div className="d-flex flex-column justify-content-start ms-2">
-              <label className="fw-bold">{post.fromName}</label>
+              <label className="fw-bold link">{post.fromName}</label>
               <label style={{ fontSize: "12px" }} className="text-muted">
                 {state.timeAgo}
               </label>
             </div>
           </div>
-          <MenuDots />
+          <DropdownButton id="post-menu-dots" View={() => <MenuDots />} />
         </div>
         <div className="card-body flex-center-v bg-theme">
           <img
@@ -127,7 +132,7 @@ const Post = ({
               }`}
               onClick={() => postliked(post)}
             />
-            <i className={`${iconCls} mx-4 bi bi-share`} />
+            <i className={`${iconCls} mx-4 bi-share`} />
             <i className={`${iconCls} bi-chat-square-quote`} />
             <i className={`${iconCls} bi-piggy-bank ms-4`} />
             <div className="flex-grow-1" />

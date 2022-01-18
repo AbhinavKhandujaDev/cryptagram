@@ -71,22 +71,12 @@ const Create: NextPage = () => {
     };
   };
 
-  // const upload = (buffer: Buffer) => {
-  //   window.ipfs.add(buffer, (error: any, result: any) => {
-  //     console.log("Ipfs result", result);
-  //     if (error) {
-  //       console.error(error);
-  //       return;
-  //     }
-  //   });
-  // };
-
   return (
     <div
       id="create-page"
       className="page flex-center-c justify-content-start p-3 py-5"
     >
-      <div className="col-11 col-sm-8 col-lg-4 my-5">
+      <div className="col-11 col-sm-8 col-md-5 col-lg-4 my-5">
         <div className="bg-theme p-3 rounded-3">
           <MediaSelectView
             isMediaSelected={state?.media ? true : false}

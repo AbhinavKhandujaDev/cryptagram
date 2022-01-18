@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, memo } from "react";
 import "../tsglobals";
 import { Navbar, BottomNav } from "../components";
 import { create, urlSource } from "ipfs-http-client";
+import "../helper/firebase";
 
 function MyApp({ Component, pageProps, router }: AppProps) {
   const [nightmode, setNghtmode] = useState(true);

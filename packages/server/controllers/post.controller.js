@@ -60,7 +60,7 @@ async function getAllPosts(req, res) {
       },
       { $sort: { date: -1 } },
     ]);
-    console.log(posts);
+    // console.log(posts);
     res.status(200).send({ success: true, data: posts });
   } catch (error) {
     console.log("getAllPosts error => ", error);

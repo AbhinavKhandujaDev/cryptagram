@@ -2,21 +2,22 @@ import type { NextPage } from "next";
 // import styles from "../styles/Home.module.css";
 import { Spinner } from "../components";
 // import Lottie from "react-lottie";
-import { useState } from "react";
+import { memo, useState, useEffect, useMemo, useCallback } from "react";
 import Particles from "react-tsparticles";
-import { useEffect, useMemo } from "react";
 
 const particles = require("../particles.json");
 
-const FormInput = ({ rightView, leftView, inpcls, ...inputProps }: any) => {
-  return (
-    <div className="input-group mb-3">
-      {leftView && <span className="input-group-text">{leftView}</span>}
-      <input {...inputProps} className={`form-control ${inpcls}`} />
-      {rightView && <span className="input-group-text">{rightView}</span>}
-    </div>
-  );
-};
+const FormInput = memo(
+  ({ rightView, leftView, inpcls, ...inputProps }: any) => {
+    return (
+      <div className="input-group mb-3">
+        {leftView && <span className="input-group-text">{leftView}</span>}
+        <input {...inputProps} className={`form-control ${inpcls}`} />
+        {rightView && <span className="input-group-text">{rightView}</span>}
+      </div>
+    );
+  }
+);
 
 const LoginForm = ({ createAcc }: any) => {
   const [state, setState] = useState({
@@ -53,7 +54,7 @@ const LoginForm = ({ createAcc }: any) => {
           Login
         </button>
         <label className="link btn" onClick={createAcc}>
-          Create a new account?
+          Don't have an account?
         </label>
       </div>
     </form>
@@ -80,13 +81,13 @@ const SignUpForm = ({ login }: any) => {
         required
         placeholder="username"
       />
-      <FormInput
+      {/* <FormInput
         leftView={<i className="bi bi-phone" />}
         type="telephone"
         name="mobile"
         required
         placeholder="mobile number"
-      />
+      /> */}
       <FormInput
         leftView="•••"
         rightView={

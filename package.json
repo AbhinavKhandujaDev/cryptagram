@@ -4,8 +4,8 @@
   },
   "scripts": {
     "dev": "lerna run dev",
-    "dev-web": "lerna run dev --scope=cryptagram-web",
-    "dev-server": "lerna run dev --scope=cryptagram-backend",
+    "dev-web": "lerna run dev --scope=client",
+    "dev-server": "lerna run dev --scope=server",
     "new-version": "lerna version --conventional-commits --yes",
     "diff": "lerna diff"
   },

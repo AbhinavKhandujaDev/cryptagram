@@ -1,13 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  let body = JSON.parse(req.body);
   try {
-    let resp = await axios.post(`${process.env.BASE_URL}/api/posts`, body);
+    let config: AxiosRequestConfig<any> = {
+      method: req.query.unlike === "true" ? "delete" : "post",
+      url: `${process.env.BASE_URL}/posts/like/${req.query.id}`,
+    };
+    let resp = await axios(config);
     let resData = resp.data.data;
     return res.send({ success: true, data: resData });
   } catch (error: any) {

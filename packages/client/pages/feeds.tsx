@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { memo, useEffect, useState, useCallback, useMemo } from "react";
+import { memo, useState, useCallback } from "react";
 import Link from "next/link";
 import { api } from "../helper";
 import { Post } from "../components";
@@ -29,22 +29,23 @@ const Feeds: NextPage = (props: any) => {
     posts: posts,
   });
 
+  const updatePost = useCallback((post: any, key: string, value: any) => {
+    setstate((prev) => {
+      return {
+        ...prev,
+        posts: prev.posts.map((p: any) => {
+          return p._id === post._id ? { ...p, [key]: value } : p;
+        }),
+      };
+    });
+  }, []);
+
   const liked = useCallback(async (post: any) => {
     let resp = await api(
       `api/post/likeunlike?id=${post._id}&unlike=${post.liked}`
     );
     if (resp.success) {
-      setstate((prev) => {
-        return {
-          ...prev,
-          posts: prev.posts.map((p: any) => {
-            if (p._id === post._id) {
-              var np = { ...p, liked: !p.liked };
-            }
-            return p._id === post._id ? np : p;
-          }),
-        };
-      });
+      updatePost(post, "liked", !post.liked);
     }
   }, []);
 
@@ -53,17 +54,7 @@ const Feeds: NextPage = (props: any) => {
       `api/post/bookmarkPost?postId=${post._id}&unsave=${post.bookmarked}`
     );
     if (resp.success) {
-      setstate((prev) => {
-        return {
-          ...prev,
-          posts: prev.posts.map((p: any) => {
-            if (p._id === post._id) {
-              var np = { ...p, bookmarked: !p.bookmarked };
-            }
-            return p._id === post._id ? np : p;
-          }),
-        };
-      });
+      updatePost(post, "bookmarked", !post.bookmarked);
     }
   }, []);
 
@@ -74,19 +65,8 @@ const Feeds: NextPage = (props: any) => {
         { body: { comment: comment } }
       );
       if (resp.success) {
-        setstate((prev) => {
-          return {
-            ...prev,
-            posts: prev.posts.map((p: any) => {
-              if (p._id === post._id) {
-                var np = { ...p };
-                
-                np.comments.push(resp.data);
-              }
-              return p._id === post._id ? np : p;
-            }),
-          };
-        });
+        post.comments.push(resp.data);
+        updatePost(post, "comments", post.comments);
       }
     },
     []
@@ -95,7 +75,7 @@ const Feeds: NextPage = (props: any) => {
   return (
     <div id="feeds" className="py-5 flex-center-h">
       <div className="col-12 col-sm-8 col-md-6 col-lg-4 py-3 d-flex flex-column align-items-center ">
-        {state.posts.map((post: any, i: number) => (
+        {state.posts.map((post: any) => (
           <Post
             key={post._id}
             post={post}
@@ -105,13 +85,6 @@ const Feeds: NextPage = (props: any) => {
             comment={comment}
           />
         ))}
-        {/* <List
-          items={getItems()}
-          nightmode={nightmode}
-          liked={liked}
-          savePost={savePost}
-          comment={comment}
-        /> */}
       </div>
       <CreateButton nightmode={nightmode} />
     </div>
@@ -121,7 +94,7 @@ const Feeds: NextPage = (props: any) => {
 export async function getServerSideProps() {
   let res;
   try {
-    res = await api(`${process.env.CLIENT_BASE_URL}/api/post/getAllPosts`, {
+    res = await api(`${process.env.CLIENT_BASE_URL}/post/getAllPosts`, {
       method: "GET",
     });
   } catch (error) {

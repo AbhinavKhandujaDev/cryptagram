@@ -19,8 +19,8 @@ const NavIcon = memo((props: any) => {
     <Link href={to}>
       <div className={`flex-center-c pointer`}>
         <Image
-          width={25}
-          height={25}
+          width={28}
+          height={28}
           src={`/images/${imagePath + selected}.png`}
           className={imageClass}
         />
@@ -63,7 +63,7 @@ const Navbar = (props: NavbarProps) => {
         />
         <NavIcon to="/nft" text="NFT" imagePath="nft" selected={status?.nft} />
         <NavIcon
-          to="/profile"
+          to="/profile/abhi123"
           text="Profile"
           imagePath="user"
           selected={status?.profile}
