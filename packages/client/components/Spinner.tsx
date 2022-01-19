@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 const Spinner = (props: any) => {
   const { size = "sm", color = "white" } = props;
   return (
@@ -9,4 +11,4 @@ const Spinner = (props: any) => {
   );
 };
 
-export default Spinner;
+export default memo(Spinner);

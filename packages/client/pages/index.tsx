@@ -1,137 +1,106 @@
 import type { NextPage } from "next";
-// import styles from "../styles/Home.module.css";
-import { Spinner } from "../components";
-// import Lottie from "react-lottie";
-import { memo, useState, useEffect, useMemo, useCallback } from "react";
+import { useCallback, memo, useState } from "react";
+import { LoginForm, SignUpForm } from "../components";
 import Particles from "react-tsparticles";
+import {
+  getAuth,
+  createUserWithEmailAndPassword as createUser,
+  signInWithEmailAndPassword as signIn,
+  setPersistence,
+  inMemoryPersistence,
+  updateProfile,
+  User,
+} from "firebase/auth";
+import Router from "next/router";
+import { api } from "../helper";
+import showToast from "../helper/toast";
 
 const particles = require("../particles.json");
 
-const FormInput = memo(
-  ({ rightView, leftView, inpcls, ...inputProps }: any) => {
-    return (
-      <div className="input-group mb-3">
-        {leftView && <span className="input-group-text">{leftView}</span>}
-        <input {...inputProps} className={`form-control ${inpcls}`} />
-        {rightView && <span className="input-group-text">{rightView}</span>}
-      </div>
-    );
-  }
-);
-
-const LoginForm = ({ createAcc }: any) => {
-  const [state, setState] = useState({
-    showPswd: false,
-  });
-  return (
-    <form className="w-100">
-      <label className="h3 mb-3 fw-bold">Login</label>
-      <FormInput
-        leftView={<i className="bi bi-envelope fw-bold" />}
-        type="email"
-        name="email"
-        required
-        placeholder="abc@example.com"
-      />
-      <FormInput
-        leftView="•••"
-        rightView={
-          <i
-            className={`bi bi-eye${
-              !state.showPswd ? "-slash" : ""
-            } btn p-0 fw-bold`}
-            onClick={() => setState({ ...state, showPswd: !state.showPswd })}
-          />
-        }
-        type={state.showPswd ? "" : "password"}
-        name="password"
-        required
-        placeholder="Password"
-      />
-      <div className="flex-center-h justify-content-between">
-        <button className="bg-prime btn text-white fw-bold flex-center-h">
-          <i className="bi bi-box-arrow-in-right fs-5 me-2 text-white" />
-          Login
-        </button>
-        <label className="link btn" onClick={createAcc}>
-          Don't have an account?
-        </label>
-      </div>
-    </form>
-  );
-};
-const SignUpForm = ({ login }: any) => {
-  const [state, setState] = useState({
-    showPswd: false,
-  });
-  return (
-    <form className="w-100">
-      <label className="h3 mb-3 fw-bold">Create Account</label>
-      <FormInput
-        leftView={<i className="bi bi-envelope fw-bold" />}
-        type="email"
-        name="email"
-        required
-        placeholder="abc@example.com"
-      />
-      <FormInput
-        leftView="@"
-        type="text"
-        name="username"
-        required
-        placeholder="username"
-      />
-      {/* <FormInput
-        leftView={<i className="bi bi-phone" />}
-        type="telephone"
-        name="mobile"
-        required
-        placeholder="mobile number"
-      /> */}
-      <FormInput
-        leftView="•••"
-        rightView={
-          <i
-            className={`bi bi-eye${
-              !state.showPswd ? "-slash" : ""
-            } btn p-0 fw-bold`}
-            onClick={() => setState({ ...state, showPswd: !state.showPswd })}
-          />
-        }
-        type={state.showPswd ? "" : "password"}
-        name="password"
-        required
-        placeholder="Password"
-      />
-      <div className="flex-center-h justify-content-between">
-        <button className="bg-prime btn text-white fw-bold flex-center-h">
-          <i className="bi bi-box-arrow-in-right fs-5 me-2 text-white" />
-          Create
-        </button>
-        <label className="link btn" onClick={login}>
-          Already have an account?
-        </label>
-      </div>
-    </form>
-  );
-};
+const auth = getAuth();
+setPersistence(auth, inMemoryPersistence);
 
 const Home: NextPage = () => {
   const [state, setState] = useState({
     isLogin: true,
+    formLoading: false,
+    loadingState: true,
   });
+
+  const saveCookies = async (user: User) => {
+    let idToken = await user.getIdToken();
+    let refToken = user.refreshToken;
+    await api("api/saveCookie", {
+      body: { key: "idToken", value: idToken },
+    });
+    await api("api/saveCookie", {
+      body: { key: "refreshToken", value: refToken },
+    });
+  };
+
+  const login = useCallback(async ({ email, password }: any) => {
+    setState((prev) => ({ ...prev, formLoading: !prev.formLoading }));
+    try {
+      let user = await signIn(auth, email, password);
+      await saveCookies(user.user);
+      Router.push("/feeds");
+    } catch (error: any) {
+      console.log("SignUp error ", error.message);
+      auth.currentUser?.delete();
+    }
+  }, []);
+
+  const createAccount = useCallback(
+    async ({ email, password, username }: any) => {
+      setState((prev) => ({ ...prev, formLoading: !prev.formLoading }));
+      try {
+        let user = await createUser(auth, email, password);
+
+        saveCookies(user.user);
+        await updateProfile(user.user, { displayName: username });
+        api("api/user/create")
+          .then(() => Router.push("/feeds"))
+          .catch(() => {
+            user.user.delete();
+            setState({ ...state, formLoading: false });
+            showToast("Unable to register account", { type: "error" });
+          });
+      } catch (error: any) {
+        console.log("SignUp error ", error.message);
+        auth.currentUser?.delete();
+        showToast(error.message, { type: "error" });
+        setState({ ...state, formLoading: false });
+      }
+    },
+    []
+  );
+
+  const switchMode = useCallback(() => {
+    if (state.formLoading) return;
+    setState((prev) => ({ ...prev, isLogin: !prev.isLogin }));
+  }, []);
+
   return (
     <div className="page flex-center-c">
       <Particles id="tsparticles" options={particles} />
+      <label className="fs-1 fw-bold mb-5">Cryptagram</label>
       <div className="mt-3 col-12 col-md-6 col-lg-4 px-3">
         {state.isLogin ? (
-          <LoginForm createAcc={() => setState({ ...state, isLogin: false })} />
+          <LoginForm
+            formLoading={state.formLoading}
+            goToSignup={switchMode}
+            login={login}
+          />
         ) : (
-          <SignUpForm login={() => setState({ ...state, isLogin: true })} />
+          <SignUpForm
+            formLoading={state.formLoading}
+            goToLogin={switchMode}
+            createAcc={createAccount}
+          />
         )}
       </div>
     </div>
   );
 };
 
-export default Home;
+export default memo(Home);

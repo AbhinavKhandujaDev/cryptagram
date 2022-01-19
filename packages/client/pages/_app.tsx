@@ -4,11 +4,13 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { useEffect, useState, useCallback, memo } from "react";
 import "../tsglobals";
-import { Navbar, BottomNav } from "../components";
+import { PagesOptions, Navbar } from "../components";
 import { create, urlSource } from "ipfs-http-client";
 import "../helper/firebase";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-function MyApp({ Component, pageProps, router }: AppProps) {
+function MyApp({ Component, pageProps, router }: AppProps | any) {
   const [nightmode, setNghtmode] = useState(true);
   const pagesStatus = {
     feeds: router.asPath.includes("feeds") ? "-selected" : "",
@@ -17,22 +19,12 @@ function MyApp({ Component, pageProps, router }: AppProps) {
     nft: "",
     profile: router.asPath.includes("profile") ? "-selected" : "",
   };
+  const isLogin = router.pathname === "/";
   useEffect(() => {
     let body = document.getElementById("body");
     body?.classList.add("dark");
 
     if (!window.ipfs) {
-      // https://ipfs.infura.io:5001/api/v0/
-      // const ipfs = create({
-      //   host: "ipfs.infura.io",
-      //   port: 5001,
-      //   protocol: "https",
-      // });
-      // const ipfs = create({
-      //   host: "localhost",
-      //   port: 8080,
-      //   protocol: "http",
-      // });
       const ipfs = create({
         host: "127.0.0.1",
         port: 5001,
@@ -53,21 +45,23 @@ function MyApp({ Component, pageProps, router }: AppProps) {
   }, [nightmode]);
   return (
     <div>
-      <Navbar
-        nightmode={nightmode}
-        switchTheme={toggleNight}
-        status={pagesStatus}
-      />
-      <Component {...pageProps} nightmode={nightmode} />
-      <footer
-        style={{ top: "100%", transform: "translateY(-100%)" }}
-        className="d-md-none position-fixed bg-theme w-100 py-2 border-top"
-      >
-        <BottomNav
-          className="flex-center-h justify-content-between px-4"
+      {!isLogin && (
+        <Navbar
+          nightmode={nightmode}
+          switchTheme={toggleNight}
           status={pagesStatus}
         />
-      </footer>
+      )}
+      <Component {...pageProps} nightmode={nightmode} />
+      {!isLogin && (
+        <footer
+          style={{ top: "100%", transform: "translateY(-100%)" }}
+          className="d-md-none position-fixed bg-theme w-100 py-2 border-top px-4"
+        >
+          <PagesOptions status={pagesStatus} showPost={true} />
+        </footer>
+      )}
+      <ToastContainer />
     </div>
   );
 }

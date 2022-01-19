@@ -97,10 +97,11 @@ export async function getServerSideProps() {
     res = await api(`${process.env.CLIENT_BASE_URL}/post/getAllPosts`, {
       method: "GET",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log("getAllPosts error ", error);
     res = { data: [] };
   }
+
   return {
     props: {
       posts: res.data,

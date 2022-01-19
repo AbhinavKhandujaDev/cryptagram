@@ -4,4 +4,6 @@ export { default as BottomNav } from "./BottomNav";
 export { default as Button } from "./Button";
 export { default as Spinner } from "./Spinner";
 export { default as Post } from "./Post";
-export { default as DropdownButton } from "./DropDownButton";
+export { default as DropdownButton } from "./DropdownButton";
+export { default as PagesOptions } from "./PagesOptions";
+export { LoginForm, SignUpForm } from "./Onboarding";

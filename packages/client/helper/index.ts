@@ -6,8 +6,12 @@ export const api = async (url: string, data?: any) => {
     return resp.json();
   } else {
     console.log("client<->server error ==> ", resp);
+    let message = "Something went wrong client<->server!";
+    if (resp.status === 403) {
+      message = "forbidden";
+    }
     return Promise.reject({
-      message: "Something went wrong client<->server!",
+      message: message,
       success: false,
     });
   }
@@ -25,11 +29,11 @@ export const getTimeAgo = (dateStr: string): string => {
   let diffDate = cDate.valueOf() - intDate.valueOf();
 
   let minutesPassed = diffDate / 1000 / 60;
-  let hoursPassed = diffDate / 1000 / 60 / 24;
-  let daysPassed = diffDate / 1000 / 60 / 60 / 24;
-  let weeksPassed = diffDate / 1000 / 60 / 60 / 24 / 7;
-  let monthsPassed = diffDate / 1000 / 60 / 60 / 24 / 7 / 30;
-  let yearsPassed = diffDate / 1000 / 60 / 60 / 24 / 7 / 30 / 12;
+  let hoursPassed = minutesPassed / 60;
+  let daysPassed = hoursPassed / 24;
+  let weeksPassed = daysPassed / 7;
+  let monthsPassed = weeksPassed / 30;
+  let yearsPassed = monthsPassed / 12;
 
   let str = "";
 
