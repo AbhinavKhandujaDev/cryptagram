@@ -129,4 +129,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-helper/cryptagram-service-account-key.json
+helper/cryptagram-service-account-key.json 
