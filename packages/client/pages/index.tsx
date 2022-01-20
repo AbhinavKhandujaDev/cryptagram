@@ -27,13 +27,13 @@ const Home: NextPage = () => {
     loadingState: true,
   });
 
-  const saveCookies = async (user: User) => {
+  const saveTokenCookie = async (user: User) => {
     let idToken = await user.getIdToken();
     let refToken = user.refreshToken;
-    await api("api/saveCookie", {
+    await api("api/cookies/saveCookie", {
       body: { key: "idToken", value: idToken },
     });
-    await api("api/saveCookie", {
+    await api("api/cookies/saveCookie", {
       body: { key: "refreshToken", value: refToken },
     });
   };
@@ -42,11 +42,19 @@ const Home: NextPage = () => {
     setState((prev) => ({ ...prev, formLoading: !prev.formLoading }));
     try {
       let user = await signIn(auth, email, password);
-      await saveCookies(user.user);
+      await saveTokenCookie(user.user);
+      let cUser = await api(
+        `/api/user/getUser?username=${user.user.displayName}`
+      );
+      await api("api/cookies/saveCookie", {
+        body: { key: "user", value: JSON.stringify(cUser.data) },
+      });
       Router.push("/feeds");
     } catch (error: any) {
       console.log("SignUp error ", error.message);
-      auth.currentUser?.delete();
+      showToast(error.message, { type: "error" });
+      setState({ ...state, formLoading: false });
+      api("api/cookies/deleteAllCookies");
     }
   }, []);
 
@@ -55,9 +63,9 @@ const Home: NextPage = () => {
       setState((prev) => ({ ...prev, formLoading: !prev.formLoading }));
       try {
         let user = await createUser(auth, email, password);
-
-        saveCookies(user.user);
         await updateProfile(user.user, { displayName: username });
+
+        await saveTokenCookie(user.user);
         api("api/user/create")
           .then(() => Router.push("/feeds"))
           .catch(() => {
@@ -70,6 +78,7 @@ const Home: NextPage = () => {
         auth.currentUser?.delete();
         showToast(error.message, { type: "error" });
         setState({ ...state, formLoading: false });
+        api("api/cookies/deleteAllCookies");
       }
     },
     []

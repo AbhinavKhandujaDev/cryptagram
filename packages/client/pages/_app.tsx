@@ -21,8 +21,10 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
   };
   const isLogin = router.pathname === "/";
   useEffect(() => {
-    let body = document.getElementById("body");
-    body?.classList.add("dark");
+    if (nightmode) {
+      let body = document.getElementById("body");
+      body?.classList.add("dark");
+    }
 
     if (!window.ipfs) {
       const ipfs = create({
@@ -61,7 +63,7 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
           <PagesOptions status={pagesStatus} showPost={true} />
         </footer>
       )}
-      <ToastContainer />
+      <ToastContainer theme={nightmode ? "dark" : "light"} />
     </div>
   );
 }

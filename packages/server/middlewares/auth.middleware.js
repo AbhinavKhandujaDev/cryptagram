@@ -3,7 +3,6 @@ const fbAdmin = require("firebase-admin");
 
 const auth = async (req, res, next) => {
   if (!req.headers.authorization) {
-    console.log("No authorization token found");
     return res.status(403).send({ success: false, message: "forbidden" });
   }
   let idToken = req.headers.authorization.split(" ")[1];
@@ -18,7 +17,7 @@ const auth = async (req, res, next) => {
   } catch (error) {
     console.log("auth error => ", error);
     return res
-      .status(403)
+      .status(400)
       .send({ success: false, message: "Something went wrong" });
   }
 };
