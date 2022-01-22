@@ -1,7 +1,10 @@
 import type { NextPage, GetServerSidePropsContext } from "next";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
-import { api } from "../../helper";
+import { api as api2 } from "../../helper";
+import { signOut, getAuth } from "firebase/auth";
+import api, { deleteTokens } from "../../helper/api";
+import Router from "next/router";
 
 const Profile: NextPage = (props: any) => {
   const { posts = [] } = props;
@@ -17,18 +20,28 @@ const Profile: NextPage = (props: any) => {
             />
           </div>
           <label className="fs-1 fw-bold my-3">Abhinav Khanduja</label>
-          <div className="flex-center-h flex-wrap col-12 col-md-10 col-lg-8 justify-content-between px-4">
+          <div className="flex-center-h flex-wrap col-12 px-4">
             <label className="flex-shrink-0 btn btn-sm bg-prime fw-bold text-white">
               Unfollow
             </label>
-            <label className="flex-shrink-0 btn border btn-sm fw-bold">
+            <label className="flex-shrink-0 btn mx-2 border btn-sm fw-bold">
               Message
             </label>
             <label className="flex-shrink-0 btn border btn-sm fw-bold">
               Support
             </label>
-            <label className="flex-shrink-0 btn border btn-sm fw-bold">
+            <label className="flex-shrink-0 btn mx-2 border btn-sm fw-bold">
               Edit
+            </label>
+            <label
+              className="flex-shrink-0 btn border btn-sm fw-bold"
+              onClick={async () => {
+                await deleteTokens();
+                await signOut(getAuth());
+                location.href = "/";
+              }}
+            >
+              Logout
             </label>
           </div>
         </div>
@@ -57,12 +70,9 @@ const Profile: NextPage = (props: any) => {
 };
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-  // ctx.params
-  // console.log("PROFILE PARAMS => ", ctx.params);
-  
   let res;
   try {
-    res = await api(`${process.env.BASE_URL}/posts/61d831b1337327f553562968`, {
+    res = await api2(`${process.env.BASE_URL}/posts/61d831b1337327f553562968`, {
       method: "GET",
     });
   } catch (error) {

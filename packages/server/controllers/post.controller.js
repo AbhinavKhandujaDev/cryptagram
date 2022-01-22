@@ -60,7 +60,7 @@ async function getAllPosts(req, res) {
       },
       { $sort: { date: -1 } },
     ]);
-    // console.log(posts);
+    console.log(posts);
     res.status(200).send({ success: true, data: posts });
   } catch (error) {
     console.log("getAllPosts error => ", error);
@@ -74,23 +74,28 @@ async function getAllPosts(req, res) {
 function createPost(req, res) {
   let body = req.body;
   let user = req.user;
-  if (!req.body.postUrl && req.body.caption) {
+  try {
+    if ((!body.postUrl && !body.caption) || !body.postType) {
+      throw new Error("Please send post url or caption with postType");
+    }
+    let obj = {
+      from: user._id,
+      fromName: user.username,
+      date: Date.now(),
+      postUrl: body.postUrl,
+      postType: body.postType,
+      caption: body.caption,
+    };
+    let post = new PostModel(obj);
+    post.save();
+    return res.send({ success: true, message: "post saved", data: post });
+  } catch (error) {
+    console.log("createPost error => ", error);
     return res.status(400).send({
       success: false,
-      message: "Please send post url or caption",
+      message: error.message,
     });
   }
-  let obj = {
-    from: user._id,
-    fromName: user.username,
-    date: Date.now(),
-    postUrl: body.postUrl,
-    postType: body.postType,
-    caption: body.caption,
-  };
-  let post = new PostModel(obj);
-  post.save();
-  return res.send({ success: true, message: "post saved", data: post });
 }
 
 async function likePost(req, res) {
@@ -161,7 +166,6 @@ async function bookmark(req, res) {
 }
 
 async function removeBookmark(req, res) {
-  console.log("req.body => ", req.body);
   try {
     await BookmarkModel.findOneAndDelete({
       from: req.user._id.toString(),

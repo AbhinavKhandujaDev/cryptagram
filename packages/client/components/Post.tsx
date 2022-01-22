@@ -3,20 +3,23 @@ import { useEffect, useRef, memo, useState, useMemo } from "react";
 import { getTimeAgo } from "../helper";
 import { DropdownButton } from ".";
 import router from "next/router";
+import { LoaderView } from "../components";
 
 interface PostProps {
-  post: any;
-  nightmode: boolean;
-  postliked: (post: any) => void;
-  postSaved: (post: any) => void;
-  comment: (post: any, remove?: boolean, comment?: string) => void;
+  post?: any;
+  nightmode?: boolean;
+  loading?: boolean;
+  id?: string;
+  postliked?: (post: any) => void;
+  postSaved?: (post: any) => void;
+  comment?: (post: any, remove?: boolean, comment?: string) => void;
 }
 
 const dotCls: string = "ratio-eq rounded-circle bg-theme-opp";
 
-const MenuDots = memo(() => {
+const MenuDots = memo(({ cls }: any) => {
   return (
-    <div className="d-flex btn">
+    <div className={`d-flex btn ${cls}`}>
       <div style={{ width: 4 }} className={dotCls} />
       <div style={{ width: 4 }} className={`${dotCls} mx-1`} />
       <div style={{ width: 4 }} className={dotCls} />
@@ -74,6 +77,8 @@ const Comment = memo((props: any) => {
 const Post = ({
   post,
   nightmode,
+  loading = true,
+  id,
   postliked,
   postSaved,
   comment,
@@ -83,93 +88,102 @@ const Post = ({
     timeAgo: "",
   });
   useEffect(() => {
-    setState({ ...state, timeAgo: getTimeAgo(post.date) });
+    setState({ ...state, timeAgo: getTimeAgo(post?.date) });
   }, []);
+  // useEffect(() => {
+  //   if (loading) return;
+  //   const divs = Array.from(document.getElementsByClassName("loading"));
+  //   divs.forEach((e: Element) => e.classList.remove("loading"));
+  // }, [loading]);
+
   const inputRef = useRef<HTMLInputElement>(null);
-  // const timeAgo = useMemo(() => getTimeAgo(post.date), [post.date]);
-  // const pbookmarked = useMemo(() => post.bookmarked, [post.bookmarked]);
+  // const timeAgo = useMemo(() => getTimeAgo(post?.date), [post?.date]);
+  // const pbookmarked = useMemo(() => post?.bookmarked, [post?.bookmarked]);
   const iconCls = useMemo(() => {
     return `pointer fs-4 text-${nightmode ? "white" : "dark"} bi`;
-  }, [nightmode, post.liked]);
+  }, [nightmode, post?.liked]);
   return (
-    <div className="w-100 overflow-hidden">
-      <div className="post card bg-theme my-3">
-        <div className="card-header flex-center-h justify-content-between bg-theme">
-          <div
-            className="flex-center-h"
-            onClick={() => router.push(`/profile/${post.fromName}`)}
-          >
-            <Image
-              className="rounded-circle pointer"
-              width={40}
-              height={40}
-              src="https://i.pravatar.cc/40"
+    <LoaderView id={id} cls="w-100" loading={loading}>
+      <div className="w-100 overflow-hidden">
+        <div className="post card bg-theme my-3 overflow-hidden">
+          <div className="card-header flex-center-h justify-content-between bg-theme">
+            <div
+              className="flex-center-h loading-view rounded px-2"
+              onClick={() => router.push(`/profile/${post?.fromName}`)}
+            >
+              <Image
+                className="rounded-circle pointer"
+                width={40}
+                height={40}
+                src="https://i.pravatar.cc/40"
+              />
+              <div className="d-flex flex-column justify-content-start ms-2">
+                <label className="fw-bold link">{post?.fromName}</label>
+                <label style={{ fontSize: "12px" }} className="text-muted">
+                  {state.timeAgo}
+                </label>
+              </div>
+            </div>
+            <DropdownButton
+              id="post-menu-dots"
+              cls="loading-view rounded-3"
+              View={() => <MenuDots />}
             />
-            <div className="d-flex flex-column justify-content-start ms-2">
-              <label className="fw-bold link">{post.fromName}</label>
-              <label style={{ fontSize: "12px" }} className="text-muted">
-                {state.timeAgo}
-              </label>
+          </div>
+          <div className="card-body flex-center-v bg-theme">
+            <div className="loading-view rounded-3">
+              <img className="flex-grow-1 w-100 ratio-eq" src={post?.postUrl} />
+            </div>
+            <label className="fw-bold fs-6 mt-2">{post?.caption}</label>
+            <div className="flex-center-c justify-content-start w-100 my-3">
+              {post?.comments?.map((c: any) => (
+                <Comment key={c._id} commentData={c} />
+              ))}
+            </div>
+            <div className="flex-center-h w-100 loading-view rounded">
+              <i
+                className={`${iconCls} bi-hand-thumbs-up${
+                  post?.liked ? "-fill" : ""
+                }`}
+                onClick={() => postliked && postliked(post)}
+              />
+              <i className={`${iconCls} mx-4 bi-share`} />
+              <i className={`${iconCls} bi-chat-square-quote`} />
+              <i className={`${iconCls} bi-piggy-bank ms-4`} />
+              <div className="flex-grow-1" />
+              <i
+                className={`${iconCls} bi-bookmark${
+                  post?.bookmarked ? "-fill" : ""
+                }`}
+                onClick={() => postSaved && postSaved(post)}
+              />
             </div>
           </div>
-          <DropdownButton id="post-menu-dots" View={() => <MenuDots />} />
-        </div>
-        <div className="card-body flex-center-v bg-theme">
-          <img
-            className="flex-grow-1 w-100 ratio-eq rounded-3"
-            src={post.postUrl}
-          />
-          <label className="fw-bold fs-6 mt-2">{post.caption}</label>
-          <div className="flex-center-c justify-content-start w-100 my-3">
-            {post.comments.map((c: any) => (
-              <Comment key={c._id} commentData={c} />
-            ))}
-          </div>
-          <div className="flex-center-h w-100">
-            <i
-              className={`${iconCls} bi-hand-thumbs-up${
-                post.liked ? "-fill" : ""
-              }`}
-              onClick={() => postliked(post)}
+          <div className="card-footer flex-center-h justify-content-between">
+            <input
+              ref={inputRef}
+              className="text-color my-1 flex-shrink-1 w-100 rounded-pill px-3 py-1 bg-theme border"
+              required
+              placeholder="Comment..."
+              onChange={(e: any) =>
+                setState({ ...state, comment: e.target.value })
+              }
             />
-            <i className={`${iconCls} mx-4 bi-share`} />
-            <i className={`${iconCls} bi-chat-square-quote`} />
-            <i className={`${iconCls} bi-piggy-bank ms-4`} />
-            <div className="flex-grow-1" />
-            <i
-              className={`${iconCls} bi-bookmark${
-                post.bookmarked ? "-fill" : ""
-              }`}
-              onClick={() => postSaved(post)}
+            <button
+              disabled={state.comment.length === 0}
+              className={`pointer btn ms-3 fs-4 text-${
+                nightmode ? "white" : "dark"
+              } bi bi-send ${state.comment.length === 0 ? "text-muted" : ""}`}
+              onClick={() => {
+                setState({ ...state, comment: "" });
+                inputRef.current && (inputRef.current.value = "");
+                comment && comment(post, false, state.comment);
+              }}
             />
           </div>
-        </div>
-        <div className="card-footer flex-center-h justify-content-between">
-          <input
-            ref={inputRef}
-            className={`text-color my-1 flex-shrink-1 w-100 rounded-pill px-3 py-1 ${
-              nightmode ? "bg-dark" : ""
-            } border`}
-            required
-            placeholder="Comment..."
-            onChange={(e: any) =>
-              setState({ ...state, comment: e.target.value })
-            }
-          />
-          <button
-            disabled={state.comment.length === 0}
-            className={`pointer btn ms-3 fs-4 text-${
-              nightmode ? "white" : "dark"
-            } bi bi-send ${state.comment.length === 0 ? "text-muted" : ""}`}
-            onClick={(e) => {
-              setState({ ...state, comment: "" });
-              inputRef.current && (inputRef.current.value = "");
-              comment(post, false, state.comment);
-            }}
-          />
         </div>
       </div>
-    </div>
+    </LoaderView>
   );
 };
 

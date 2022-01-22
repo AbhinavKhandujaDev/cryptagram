@@ -1,24 +1,26 @@
 import type { NextPage } from "next";
-import { useCallback, memo, useState } from "react";
+import { useEffect, useCallback, memo, useState } from "react";
 import { LoginForm, SignUpForm } from "../components";
 import Particles from "react-tsparticles";
 import {
   getAuth,
   createUserWithEmailAndPassword as createUser,
   signInWithEmailAndPassword as signIn,
-  setPersistence,
-  inMemoryPersistence,
+  // setPersistence,
+  // inMemoryPersistence,
   updateProfile,
-  User,
+  // User,
+  // NextOrObserver,
+  // onAuthStateChanged,
 } from "firebase/auth";
 import Router from "next/router";
-import { api } from "../helper";
 import showToast from "../helper/toast";
+import api, { saveTokenCookie } from "../helper/api";
 
 const particles = require("../particles.json");
 
 const auth = getAuth();
-setPersistence(auth, inMemoryPersistence);
+// setPersistence(auth, inMemoryPersistence);
 
 const Home: NextPage = () => {
   const [state, setState] = useState({
@@ -27,34 +29,42 @@ const Home: NextPage = () => {
     loadingState: true,
   });
 
-  const saveTokenCookie = async (user: User) => {
-    let idToken = await user.getIdToken();
-    let refToken = user.refreshToken;
-    await api("api/cookies/saveCookie", {
-      body: { key: "idToken", value: idToken },
-    });
-    await api("api/cookies/saveCookie", {
-      body: { key: "refreshToken", value: refToken },
-    });
-  };
+  // useEffect(() => {
+  //   onAuthStateChanged(auth, (user: User | null) => {
+  //     debugger;
+  //     user && saveTokenCookie(user);
+  //   });
+  // }, []);
+
+  // const saveTokenCookie = async (user: User) => {
+  //   let idToken = await user.getIdToken();
+  //   let refToken = user.refreshToken;
+  //   await api.post("api/cookies/saveCookie", {
+  //     body: { key: "idToken", value: idToken },
+  //   });
+  //   await api.post("api/cookies/saveCookie", {
+  //     body: { key: "refreshToken", value: refToken },
+  //   });
+  // };
 
   const login = useCallback(async ({ email, password }: any) => {
     setState((prev) => ({ ...prev, formLoading: !prev.formLoading }));
     try {
       let user = await signIn(auth, email, password);
       await saveTokenCookie(user.user);
-      let cUser = await api(
+      let cUser = await api.get(
         `/api/user/getUser?username=${user.user.displayName}`
       );
-      await api("api/cookies/saveCookie", {
+
+      await api.post("api/cookies/saveCookie", {
         body: { key: "user", value: JSON.stringify(cUser.data) },
       });
       Router.push("/feeds");
     } catch (error: any) {
-      console.log("SignUp error ", error.message);
+      console.log("Login error ", error.message);
       showToast(error.message, { type: "error" });
       setState({ ...state, formLoading: false });
-      api("api/cookies/deleteAllCookies");
+      api.delete("api/cookies/deleteAllCookies");
     }
   }, []);
 
@@ -66,7 +76,8 @@ const Home: NextPage = () => {
         await updateProfile(user.user, { displayName: username });
 
         await saveTokenCookie(user.user);
-        api("api/user/create")
+        api
+          .post("api/user/create")
           .then(() => Router.push("/feeds"))
           .catch(() => {
             user.user.delete();
@@ -78,7 +89,7 @@ const Home: NextPage = () => {
         auth.currentUser?.delete();
         showToast(error.message, { type: "error" });
         setState({ ...state, formLoading: false });
-        api("api/cookies/deleteAllCookies");
+        api.delete("api/cookies/deleteAllCookies");
       }
     },
     []

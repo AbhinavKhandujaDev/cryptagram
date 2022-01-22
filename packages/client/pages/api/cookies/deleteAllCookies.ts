@@ -4,7 +4,9 @@ const cookie = require("cookie");
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   let keys = Object.keys(req.cookies);
-  keys.forEach((key) => {
+  console.log("keys => ", keys);
+  keys.forEach((key, i) => {
+    console.log("deleting => ", i);
     res.setHeader(
       "Set-Cookie",
       cookie.serialize(key, "", {
@@ -16,5 +18,5 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       })
     );
   });
-  return res.send({ success: true, message: "save successfully" });
+  return res.send({ success: true, message: "deleted successfully" });
 }

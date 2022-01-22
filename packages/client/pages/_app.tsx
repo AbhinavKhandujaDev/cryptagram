@@ -2,23 +2,30 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "../styles/root.css";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-import { useEffect, useState, useCallback, memo } from "react";
+import { useEffect, useState, useCallback, memo, useMemo } from "react";
 import "../tsglobals";
 import { PagesOptions, Navbar } from "../components";
 import { create, urlSource } from "ipfs-http-client";
 import "../helper/firebase";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { onAuthStateChanged, getAuth, User } from "firebase/auth";
+import api, { saveTokenCookie } from "../helper/api";
+
+const auth = getAuth();
 
 function MyApp({ Component, pageProps, router }: AppProps | any) {
   const [nightmode, setNghtmode] = useState(true);
-  const pagesStatus = {
-    feeds: router.asPath.includes("feeds") ? "-selected" : "",
-    wallet: router.asPath.includes("wallet") ? "-selected" : "",
-    create: router.asPath.includes("create") ? "-selected" : "",
-    nft: "",
-    profile: router.asPath.includes("profile") ? "-selected" : "",
-  };
+  const pagesStatus = useMemo(
+    () => ({
+      feeds: router.asPath.includes("feeds") ? "-selected" : "",
+      wallet: router.asPath.includes("wallet") ? "-selected" : "",
+      create: router.asPath.includes("create") ? "-selected" : "",
+      nft: "",
+      profile: router.asPath.includes("profile") ? "-selected" : "",
+    }),
+    [router.asPath]
+  );
   const isLogin = router.pathname === "/";
   useEffect(() => {
     if (nightmode) {
@@ -35,7 +42,16 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
       window.ipfs = ipfs;
       window.urlSource = urlSource;
     }
+
+    onAuthStateChanged(auth, async (user: User | null) => {
+      let idToken = await user?.getIdToken();
+      if (user && idToken) {
+        let token = await api.get(`/api/cookies/matchIdToken?token=${idToken}`);
+        !token.success && saveTokenCookie(user);
+      }
+    });
   }, []);
+
   const toggleNight = useCallback(() => {
     let body = document.getElementById("body");
     if (nightmode) {

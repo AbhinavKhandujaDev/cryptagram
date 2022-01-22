@@ -1,7 +1,8 @@
-import type { NextPage } from "next";
-import { memo, useState, useCallback } from "react";
+import type { NextPage, GetServerSidePropsContext } from "next";
+import { useMemo, useEffect, memo, useState, useCallback } from "react";
 import Link from "next/link";
-import { api } from "../helper";
+import { api as api2 } from "../helper";
+import api from "../helper/api";
 import { Post } from "../components";
 
 const CreateButton = memo(({ nightmode }: any) => (
@@ -24,35 +25,47 @@ const CreateButton = memo(({ nightmode }: any) => (
 ));
 
 const Feeds: NextPage = (props: any) => {
-  const { posts = [], nightmode } = props;
+  const { nightmode } = props;
   const [state, setstate] = useState({
-    posts: posts,
+    loadingPosts: true,
+    posts: [],
   });
 
+  const fetchPosts = async () => {
+    let res = await api.get("api/post/getAllPosts");
+    return res.data;
+  };
+
+  useEffect(() => {
+    (async () => {
+      let resp = await fetchPosts();
+      setstate((prev) => ({ ...prev, posts: resp, loadingPosts: false }));
+    })();
+  }, []);
+
   const updatePost = useCallback((post: any, key: string, value: any) => {
-    setstate((prev) => {
-      return {
-        ...prev,
-        posts: prev.posts.map((p: any) => {
-          return p._id === post._id ? { ...p, [key]: value } : p;
-        }),
-      };
-    });
+    setstate((prev: any) => ({
+      ...prev,
+      posts: prev.posts.map((p: any) => {
+        return p._id === post._id ? { ...p, [key]: value } : p;
+      }),
+    }));
   }, []);
 
   const liked = useCallback(async (post: any) => {
-    let resp = await api(
-      `api/post/likeunlike?id=${post._id}&unlike=${post.liked}`
-    );
+    let path = `api/post/like?id=${post._id}&unlike=${post.liked}`;
+    let resp = post.liked ? await api.delete(path) : await api.post(path);
+    // let resp = await api2(
+    //   `api/post/likeunlike?id=${post._id}&unlike=${post.liked}`
+    // );
     if (resp.success) {
       updatePost(post, "liked", !post.liked);
     }
   }, []);
 
   const savePost = useCallback(async (post: any) => {
-    let resp = await api(
-      `api/post/bookmarkPost?postId=${post._id}&unsave=${post.bookmarked}`
-    );
+    let path = `api/post/bookmark?postId=${post._id}`;
+    let resp = post.bookmarked ? await api.delete(path) : await api.post(path);
     if (resp.success) {
       updatePost(post, "bookmarked", !post.bookmarked);
     }
@@ -60,10 +73,12 @@ const Feeds: NextPage = (props: any) => {
 
   const comment = useCallback(
     async (post: any, remove?: boolean, comment?: string) => {
-      let resp = await api(
-        `api/post/comment?postId=${post._id}&remove=${remove}`,
-        { body: { comment: comment } }
-      );
+      // let resp = await api2(
+      //   `api/post/comment?postId=${post._id}&remove=${remove}`,
+      //   { body: { comment: comment } }
+      // );
+      let path = `api/post/comment?postId=${post._id}`;
+      let resp = await api.post(path, { body: { comment: comment } });
       if (resp.success) {
         post.comments.push(resp.data);
         updatePost(post, "comments", post.comments);
@@ -72,41 +87,61 @@ const Feeds: NextPage = (props: any) => {
     []
   );
 
+  const skeleton = useMemo(
+    () =>
+      Array(5)
+        .fill(0)
+        .map((_, i) => (
+          <div key={i} className="w-100">
+            <Post
+              id={`feed-post-${i}`}
+              loading={true}
+              post={null}
+              nightmode={nightmode}
+            />
+          </div>
+        )),
+    [nightmode]
+  );
+
   return (
     <div id="feeds" className="py-5 flex-center-h">
-      <div className="col-12 col-sm-8 col-md-6 col-lg-4 py-3 d-flex flex-column align-items-center ">
-        {state.posts.map((post: any) => (
-          <Post
-            key={post._id}
-            post={post}
-            nightmode={nightmode}
-            postliked={liked}
-            postSaved={savePost}
-            comment={comment}
-          />
-        ))}
+      <div className="col-12 col-sm-8 col-md-6 col-lg-4 py-3 d-flex flex-column align-items-center">
+        {state.loadingPosts
+          ? skeleton
+          : state.posts.map((post: any) => (
+              <Post
+                key={post._id}
+                post={post}
+                loading={false}
+                nightmode={nightmode}
+                postliked={liked}
+                postSaved={savePost}
+                comment={comment}
+              />
+            ))}
       </div>
       <CreateButton nightmode={nightmode} />
     </div>
   );
 };
 
-export async function getServerSideProps() {
-  let res;
-  try {
-    res = await api(`${process.env.CLIENT_BASE_URL}/post/getAllPosts`, {
-      method: "GET",
-    });
-  } catch (error: any) {
-    console.log("getAllPosts error ", error);
-    res = { data: [] };
-  }
-
-  return {
-    props: {
-      posts: res.data,
-    },
-  };
-}
+// export async function getServerSideProps(ctx: GetServerSidePropsContext) {
+//   let res;
+//   try {
+//     res = await api.get(`${process.env.CLIENT_BASE_URL}/post/getAllPosts`, {
+//       headers: {
+//         Authorization: `Bearer ${ctx.req.cookies.idToken}`,
+//       },
+//     });
+//   } catch (error: any) {
+//     res = { data: [] };
+//   }
+//   return {
+//     props: {
+//       posts: res.data,
+//     },
+//   };
+// }
 
 export default memo(Feeds);

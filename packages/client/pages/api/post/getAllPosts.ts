@@ -1,13 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import axios, { AxiosError } from "axios";
+import axiosConfig from "../../../lib";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   try {
+    console.log(req.cookies);
     let id = req.query.id ? req.query.id : "";
-    let resp = await axios.get(`${process.env.BASE_URL}/posts/${id}`);
+    let resp = await axios(axiosConfig(req, `posts/${id}`));
     let resData = resp.data.data;
     return res.send({ success: true, data: resData });
   } catch (error: any) {

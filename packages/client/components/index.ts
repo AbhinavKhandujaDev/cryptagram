@@ -6,4 +6,5 @@ export { default as Spinner } from "./Spinner";
 export { default as Post } from "./Post";
 export { default as DropdownButton } from "./DropdownButton";
 export { default as PagesOptions } from "./PagesOptions";
+export { default as LoaderView } from "./LoaderView";
 export { LoginForm, SignUpForm } from "./Onboarding";

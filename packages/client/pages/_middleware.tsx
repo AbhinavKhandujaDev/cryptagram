@@ -13,6 +13,7 @@ export async function middleware(req: NextRequest) {
   let pageUrl = `${domain}${req.nextUrl}`;
   let cookies = req.cookies;
   let exists = cookies.idToken?.length > 0 && cookies.refreshToken?.length > 0;
+
   if (privateRoutes.includes(pageUrl)) {
     if (!exists) {
       return NextResponse.redirect("/");

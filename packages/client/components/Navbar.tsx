@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { memo } from "react";
 import PagesOptions from "./PagesOptions";
+import { Switch } from "../components";
 
 interface NavbarProps {
   switchTheme?: () => void;
@@ -20,20 +21,10 @@ const Navbar = (props: NavbarProps) => {
           Cryptagram
         </label>
       </Link>
-      <div className="pages-options-container d-none d-md-flex flex-center-h px-5 w-50">
+      <div className="pages-options-container d-none d-md-flex flex-center-h px-5 col-7">
         <PagesOptions status={status} />
       </div>
-      <div
-        style={{ width: "150px" }}
-        className="flex-center-h justify-content-end"
-      >
-        <label
-          className="flex-center-h h-100 pointer"
-          onClick={() => switchTheme && switchTheme()}
-        >
-          {nightmode ? "☾" : "☀️"}
-        </label>
-      </div>
+      <Switch isOn={nightmode} onSwitch={switchTheme} />
     </nav>
   );
 };

@@ -18,8 +18,8 @@ mongoose.connect(url, {
   useUnifiedTopology: true,
 });
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cors({ origin: `http://localhost:${process.env.PORT}` }));
-app.use(express.urlencoded({ extended: true }));
 
 const { authMiddleware } = require("./middlewares");
 

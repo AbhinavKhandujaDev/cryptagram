@@ -1,18 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import axios, { AxiosRequestConfig } from "axios";
+import axiosConfig from "../../../lib";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   try {
-    let body = JSON.parse(req.body);
-    let config: AxiosRequestConfig<any> = {
-      method: req.query.remove === "true" ? "delete" : "post",
-      url: `${process.env.BASE_URL}/posts/comment/${req.query.postId}`,
-      data: { comment: body.comment },
-    };
-    let resp = await axios(config);
+    let resp = await axios(
+      axiosConfig(req, `posts/comment/${req.query.postId}`)
+    );
     let resData = resp.data.data;
     return res.send({ success: true, data: resData });
   } catch (error: any) {

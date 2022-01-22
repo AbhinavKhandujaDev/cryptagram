@@ -1,7 +1,9 @@
 import type { NextPage } from "next";
-import { useState, memo, useEffect } from "react";
-import { api } from "../helper";
+import { useState, memo, useEffect, useCallback } from "react";
+// import { api } from "../helper";
+import api from "../helper/api";
 import { Button } from "../components";
+import showToast from "../helper/toast";
 
 const MediaSelectView = memo(({ onMediaSelect, isMediaSelected }: any) => {
   return (
@@ -29,47 +31,55 @@ const MediaSelectView = memo(({ onMediaSelect, isMediaSelected }: any) => {
 });
 
 interface CreatePageProps {
-  media?: any;
+  media?: File | null;
   caption?: string;
   isUploading?: boolean;
 }
 
 const Create: NextPage = () => {
-  const [state, setstate] = useState<CreatePageProps>();
+  const [state, setstate] = useState<CreatePageProps>({
+    media: null,
+    caption: "",
+  });
 
-  const upload = (event: any) => {
-    event.preventDefault();
-    if (state?.isUploading) return;
-    const file = state?.media;
-    const reader = new window.FileReader();
-    reader.readAsArrayBuffer(file);
+  const upload = useCallback(
+    (event: any) => {
+      event.preventDefault();
+      if (state?.isUploading) return;
 
-    reader.onloadend = async () => {
-      if (reader.result) {
-        let src = window.urlSource(URL.createObjectURL(state?.media));
-        // let src = window.urlSource(`https://ipfs.io/images/ipfs-logo.svg`);
-        setstate({ ...state, isUploading: true });
-        let fileData = await window.ipfs.add(src);
-        let hash = fileData.cid.toV1().toString();
-        api("/api/post/createPost", {
-          body: {
-            // postUrl: `https://ipfs.infura.io/ipfs/${hash}`,
-            postUrl: `https://ipfs.io/ipfs/${hash}`,
-            postType: state?.media.type,
-            caption: state?.caption,
-          },
-        })
-          .then(() => {
-            setstate({ ...state, isUploading: false });
-            alert("uploaded successfully");
-          })
-          .catch((error) => {
-            console.log("upload error => ", error);
-            setstate({ ...state, isUploading: false });
-          });
+      if (state?.media) {
+        const file = state?.media;
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+
+        reader.onloadend = async () => {
+          if (reader.result) {
+            let src = window.urlSource(URL.createObjectURL(file));
+            setstate((prev) => ({ ...prev, isUploading: true }));
+            let fileData = await window.ipfs.add(src);
+            let hash = fileData.cid.toV1().toString();
+            let body = {
+              // postUrl: `https://ipfs.infura.io/ipfs/${hash}`,
+              postUrl: `https://ipfs.io/ipfs/${hash}`,
+              postType: file.type,
+              caption: state?.caption,
+            };
+            api
+              .post("/api/post/createPost", { body })
+              .then(() => {
+                setstate((prev) => ({ ...prev, isUploading: false }));
+                showToast("Uploaded successfully");
+              })
+              .catch((error) => {
+                showToast("Upload failed", { type: "error" });
+                setstate((prev) => ({ ...prev, isUploading: false }));
+              });
+          }
+        };
       }
-    };
-  };
+    },
+    [state]
+  );
 
   return (
     <div
