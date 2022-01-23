@@ -1,9 +1,9 @@
-import type { NextPage, GetServerSidePropsContext } from "next";
+import type { NextPage, GetServerSideProps } from "next";
 import { useMemo, useEffect, memo, useState, useCallback } from "react";
 import Link from "next/link";
-import { api as api2 } from "../helper";
 import api from "../helper/api";
 import { Post } from "../components";
+import auth from "../helper/auth";
 
 const CreateButton = memo(({ nightmode }: any) => (
   <Link href="/create">
@@ -126,22 +126,10 @@ const Feeds: NextPage = (props: any) => {
   );
 };
 
-// export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-//   let res;
-//   try {
-//     res = await api.get(`${process.env.CLIENT_BASE_URL}/post/getAllPosts`, {
-//       headers: {
-//         Authorization: `Bearer ${ctx.req.cookies.idToken}`,
-//       },
-//     });
-//   } catch (error: any) {
-//     res = { data: [] };
-//   }
-//   return {
-//     props: {
-//       posts: res.data,
-//     },
-//   };
-// }
+export const getServerSideProps: GetServerSideProps = auth(async () => {
+  return {
+    props: {},
+  };
+});
 
 export default memo(Feeds);

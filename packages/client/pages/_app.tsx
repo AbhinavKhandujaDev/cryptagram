@@ -16,6 +16,7 @@ const auth = getAuth();
 
 function MyApp({ Component, pageProps, router }: AppProps | any) {
   const [nightmode, setNghtmode] = useState(true);
+  const [user, setuser] = useState<any>(null);
   const pagesStatus = useMemo(
     () => ({
       feeds: router.asPath.includes("feeds") ? "-selected" : "",
@@ -28,6 +29,11 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
   );
   const isLogin = router.pathname === "/";
   useEffect(() => {
+    (async () => {
+      let user = await api.get("/api/cookies/user");
+      user.data && setuser(user.data);
+    })();
+
     if (nightmode) {
       let body = document.getElementById("body");
       body?.classList.add("dark");
@@ -48,6 +54,12 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
       if (user && idToken) {
         let token = await api.get(`/api/cookies/matchIdToken?token=${idToken}`);
         !token.success && saveTokenCookie(user);
+        !token.success &&
+          setuser({
+            ...user,
+            username: user.displayName,
+            email: user.email,
+          });
       }
     });
   }, []);
@@ -68,15 +80,16 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
           nightmode={nightmode}
           switchTheme={toggleNight}
           status={pagesStatus}
+          user={user}
         />
       )}
-      <Component {...pageProps} nightmode={nightmode} />
+      <Component {...pageProps} nightmode={nightmode} user={user} />
       {!isLogin && (
         <footer
           style={{ top: "100%", transform: "translateY(-100%)" }}
           className="d-md-none position-fixed bg-theme w-100 py-2 border-top px-4"
         >
-          <PagesOptions status={pagesStatus} showPost={true} />
+          <PagesOptions status={pagesStatus} showPost={true} user={user} />
         </footer>
       )}
       <ToastContainer theme={nightmode ? "dark" : "light"} />

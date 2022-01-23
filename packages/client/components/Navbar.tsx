@@ -7,10 +7,11 @@ interface NavbarProps {
   switchTheme?: () => void;
   nightmode?: boolean;
   status?: any;
+  user?: any;
 }
 
 const Navbar = (props: NavbarProps) => {
-  const { switchTheme, nightmode, status } = props;
+  const { switchTheme, nightmode, status, user } = props;
   return (
     <nav
       style={{ height: "50px" }}
@@ -22,9 +23,11 @@ const Navbar = (props: NavbarProps) => {
         </label>
       </Link>
       <div className="pages-options-container d-none d-md-flex flex-center-h px-5 col-7">
-        <PagesOptions status={status} />
+        <PagesOptions status={status} user={user} />
       </div>
-      <Switch isOn={nightmode} onSwitch={switchTheme} />
+      <div style={{ width: "150px" }} className="d-flex justify-content-end">
+        <Switch isOn={nightmode} onSwitch={switchTheme} />
+      </div>
     </nav>
   );
 };

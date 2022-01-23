@@ -1,6 +1,6 @@
-import type { NextPage } from "next";
+import type { NextPage, GetServerSideProps } from "next";
 import { useState, memo, useEffect, useCallback } from "react";
-// import { api } from "../helper";
+import auth from "../helper/auth";
 import api from "../helper/api";
 import { Button } from "../components";
 import showToast from "../helper/toast";
@@ -144,5 +144,11 @@ const Create: NextPage = () => {
     </div>
   );
 };
+
+export const getServerSideProps: GetServerSideProps = auth(async () => {
+  return {
+    props: {},
+  };
+});
 
 export default memo(Create);

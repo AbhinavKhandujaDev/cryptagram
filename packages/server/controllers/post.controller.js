@@ -1,3 +1,5 @@
+const { UserModel } = require("../models");
+
 const {
   LikeModel,
   PostModel,
@@ -10,10 +12,13 @@ function matchAndGet(fieldsArray) {
 }
 
 async function getAllPosts(req, res) {
+  let username = req.params.username;
+
   try {
-    let posts = await PostModel.aggregate([
+    let user = await UserModel.findOne({ username });
+
+    let aggrs = [
       { $limit: 10 },
-      { $match: { from: req.user._id.toString() } },
       {
         $lookup: {
           from: "likes",
@@ -59,7 +64,12 @@ async function getAllPosts(req, res) {
         },
       },
       { $sort: { date: -1 } },
-    ]);
+    ];
+    if (user) {
+      aggrs = [{ $match: { from: user._id.toString() } }, ...aggrs];
+    }
+    console.log("AGGREGATORS => ", aggrs);
+    let posts = await PostModel.aggregate(aggrs);
     console.log(posts);
     res.status(200).send({ success: true, data: posts });
   } catch (error) {

@@ -4,7 +4,7 @@ const router = express();
 
 const { postController } = require("../controllers");
 
-router.get("/:id?", postController.getAllPosts);
+router.get("/:username?", postController.getAllPosts);
 
 router.post("/like/:id", postController.likePost);
 router.delete("/like/:id", postController.unlikePost);

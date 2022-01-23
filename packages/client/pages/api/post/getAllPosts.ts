@@ -8,8 +8,8 @@ export default async function handler(
 ) {
   try {
     console.log(req.cookies);
-    let id = req.query.id ? req.query.id : "";
-    let resp = await axios(axiosConfig(req, `posts/${id}`));
+    let username = req.query.username ? req.query.username : "";
+    let resp = await axios(axiosConfig(req, `posts/${username}`));
     let resData = resp.data.data;
     return res.send({ success: true, data: resData });
   } catch (error: any) {

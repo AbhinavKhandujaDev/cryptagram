@@ -23,6 +23,7 @@ async function createUser(req, res) {
 async function getUser(req, res) {
   try {
     let user = await UserModel.findOne({ username: req.params.username });
+    console.log("aaaaa => ", user);
     let userData = {
       username: user.username,
       email: user.email,

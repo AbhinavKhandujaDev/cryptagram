@@ -85,6 +85,7 @@ nav, footer {
 .loading {
   overflow: hidden !important;
   pointer-events: none !important;
+  color: transparent !important;
 }
 
 .loading * {

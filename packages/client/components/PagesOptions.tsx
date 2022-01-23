@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, forwardRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -6,7 +6,7 @@ const NavIcon = memo((props: any) => {
   const { imagePath, to, imageClass, selected, size = 28 } = props;
   return (
     <Link href={to}>
-      <Image
+      <img
         width={size}
         height={size}
         src={`/images/${imagePath + selected}.png`}
@@ -15,9 +15,12 @@ const NavIcon = memo((props: any) => {
     </Link>
   );
 });
+// const NavIcon = memo(
+//   forwardRef((props, ref) => <Link {...props} href={ref} />)
+// );
 
 function PagesOptions(props: any) {
-  const { status, showPost = false } = props;
+  const { status, showPost = false, user } = props;
   return (
     <div className="PagesOptions flex-center-h justify-content-between col-12">
       <NavIcon
@@ -43,7 +46,7 @@ function PagesOptions(props: any) {
       )}
       <NavIcon to="/nft" text="NFT" imagePath="nft" selected={status?.nft} />
       <NavIcon
-        to="/profile/abhi123"
+        to={`/profile/${user?.username}`}
         text="Profile"
         imagePath="user"
         selected={status?.profile}

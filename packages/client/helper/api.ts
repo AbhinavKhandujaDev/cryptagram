@@ -50,21 +50,23 @@ const api = {
   },
 };
 
-export const saveTokenCookie = async (user: User) => {
+export const saveTokenCookie = async (user: User, urlpre: string = "") => {
   let idToken = await user.getIdToken();
   let refToken = user.refreshToken;
-  await api.post("api/cookies/saveCookie", {
+  let url = `${urlpre}/api/cookies/saveCookie`;
+  await api.post(url, {
     body: { key: "idToken", value: idToken },
   });
-  await api.post("api/cookies/saveCookie", {
+  await api.post(url, {
     body: { key: "refreshToken", value: refToken },
   });
 };
 
-export const deleteTokens = async () => {
+export const deleteTokens = async (urlpre: string) => {
   let keys = ["idToken", "refreshToken", "user"];
+  let url = `${urlpre}/api/cookies/saveCookie`;
   keys.forEach(async (key) => {
-    await api.post("../api/cookies/saveCookie", {
+    await api.post(url, {
       body: { key: key, value: "" },
     });
   });

@@ -11,7 +11,7 @@ export default async function handler(
     if (!req.cookies.idToken) {
       throw new Error("idToken not available");
     }
-    let path = `${process.env.BASE_URL}/user/create`;
+    let path = "user/create";
     let resp = await axios(axiosConfig(req, path));
     let resData = resp.data.data;
     return res.send({ success: true, data: resData });

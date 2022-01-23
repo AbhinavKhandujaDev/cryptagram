@@ -7,9 +7,9 @@ export const api = async (url: string, data?: any) => {
   } else {
     console.log("client<->server error ==> ", resp);
     let message = "Something went wrong client<->server!";
-    if (resp.status === 403) {
-      message = "forbidden";
-    }
+    // if (resp.status === 403) {
+    //   message = "forbidden";
+    // }
     return Promise.reject({
       message: message,
       success: false,
