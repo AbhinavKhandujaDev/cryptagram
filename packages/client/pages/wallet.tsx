@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Script from "next/script";
 import { wallet } from "../hooks";
 import Web3 from "web3";
+import api from "../helper/api";
 
 interface WalletState {
   accountAdd: string;
@@ -21,6 +22,7 @@ const Wallet: NextPage = (props: any) => {
       await loadWallet();
       let accs = await accounts();
       let balance = await getEthBalance(accs[0]);
+      await api.put("/api/user/update", { body: { ethAddress: accs[0] } });
       setState({ ...state, accountAdd: accs[0], balance });
     })();
   }, []);

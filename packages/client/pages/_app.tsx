@@ -6,11 +6,14 @@ import { useEffect, useState, useCallback, memo, useMemo } from "react";
 import "../tsglobals";
 import { PagesOptions, Navbar } from "../components";
 import { create, urlSource } from "ipfs-http-client";
+// import initFirebase from "../helper/firebase";
 import "../helper/firebase";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { onAuthStateChanged, getAuth, User } from "firebase/auth";
 import api, { saveTokenCookie } from "../helper/api";
+
+// initFirebase();
 
 const auth = getAuth();
 

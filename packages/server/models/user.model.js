@@ -18,5 +18,9 @@ const UserModel = new mongoose.Schema({
     unique: true,
     trim: true,
   },
+  ethAddress: {
+    type: String,
+    trim: true,
+  },
 });
 module.exports = mongoose.model("Users", UserModel);

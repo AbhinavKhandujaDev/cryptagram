@@ -13,6 +13,7 @@ interface PostProps {
   postliked?: (post: any) => void;
   postSaved?: (post: any) => void;
   comment?: (post: any, remove?: boolean, comment?: string) => void;
+  support?: (post: any) => void;
 }
 
 const dotCls: string = "ratio-eq rounded-circle bg-theme-opp";
@@ -82,6 +83,7 @@ const Post = ({
   postliked,
   postSaved,
   comment,
+  support,
 }: PostProps) => {
   const [state, setState] = useState({
     comment: "",
@@ -149,7 +151,10 @@ const Post = ({
               />
               <i className={`${iconCls} mx-4 bi-share`} />
               <i className={`${iconCls} bi-chat-square-quote`} />
-              <i className={`${iconCls} bi-piggy-bank ms-4`} />
+              <i
+                className={`${iconCls} bi-piggy-bank ms-4`}
+                onClick={() => support && support(post)}
+              />
               <div className="flex-grow-1" />
               <i
                 className={`${iconCls} bi-bookmark${

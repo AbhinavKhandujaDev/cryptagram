@@ -42,6 +42,9 @@ const api = {
   get: async (url: string, data?: any): Promise<any> => {
     return call(url, "get", data);
   },
+  put: async (url: string, data?: any): Promise<any> => {
+    return call(url, "put", data);
+  },
   post: async (url: string, data?: any): Promise<any> => {
     return call(url, "post", data);
   },

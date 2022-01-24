@@ -1,9 +1,14 @@
-import type { NextPage, GetServerSideProps } from "next";
+import type {
+  NextPage,
+  GetServerSideProps,
+  GetServerSidePropsContext,
+} from "next";
 import { useMemo, useEffect, memo, useState, useCallback } from "react";
 import Link from "next/link";
 import api from "../helper/api";
 import { Post } from "../components";
 import auth from "../helper/auth";
+import { wallet } from "../hooks";
 
 const CreateButton = memo(({ nightmode }: any) => (
   <Link href="/create">
@@ -25,7 +30,8 @@ const CreateButton = memo(({ nightmode }: any) => (
 ));
 
 const Feeds: NextPage = (props: any) => {
-  const { nightmode } = props;
+  const { nightmode, user } = props;
+  const { accounts, loadWallet, transfer, contract } = wallet();
   const [state, setstate] = useState({
     loadingPosts: true,
     posts: [],
@@ -73,10 +79,6 @@ const Feeds: NextPage = (props: any) => {
 
   const comment = useCallback(
     async (post: any, remove?: boolean, comment?: string) => {
-      // let resp = await api2(
-      //   `api/post/comment?postId=${post._id}&remove=${remove}`,
-      //   { body: { comment: comment } }
-      // );
       let path = `api/post/comment?postId=${post._id}`;
       let resp = await api.post(path, { body: { comment: comment } });
       if (resp.success) {
@@ -85,6 +87,26 @@ const Feeds: NextPage = (props: any) => {
       }
     },
     []
+  );
+
+  const support = useCallback(
+    async (post: any) => {
+      try {
+        await loadWallet();
+        let accs = await accounts();
+        // console.log(contract);
+        // console.log(user);
+        let res = await contract.current.methods
+          .getSupportStatus(post._id, user._id)
+          .call();
+        console.log("getSupportStatus => ", res);
+        return;
+        await transfer(accs[0], post.ethAddress, post._id, user._id);
+      } catch (error) {
+        console.log("post support error => ", error);
+      }
+    },
+    [contract]
   );
 
   const skeleton = useMemo(
@@ -117,6 +139,7 @@ const Feeds: NextPage = (props: any) => {
                 nightmode={nightmode}
                 postliked={liked}
                 postSaved={savePost}
+                support={support}
                 comment={comment}
               />
             ))}
@@ -126,10 +149,14 @@ const Feeds: NextPage = (props: any) => {
   );
 };
 
-export const getServerSideProps: GetServerSideProps = auth(async () => {
-  return {
-    props: {},
-  };
-});
+export const getServerSideProps: GetServerSideProps = auth(
+  async (ctx: GetServerSidePropsContext) => {
+    return {
+      props: {
+        user: ctx.req.cookies.user,
+      },
+    };
+  }
+);
 
 export default memo(Feeds);

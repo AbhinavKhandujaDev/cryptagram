@@ -1,5 +1,5 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 // import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -8,7 +8,7 @@ import { initializeApp } from "firebase/app";
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDGXxm9p7IlObJ5xxNoVrKyu1AkszOjoGw",
-  //   authDomain: "cryptagram-55fcf.firebaseapp.com",
+  // authDomain: "cryptagram-55fcf.firebaseapp.com",
   projectId: "cryptagram-55fcf",
   storageBucket: "cryptagram-55fcf.appspot.com",
   //   messagingSenderId: "235755642785",
@@ -17,4 +17,6 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-initializeApp(firebaseConfig);
+if (getApps().length === 0) {
+  initializeApp(firebaseConfig);
+}

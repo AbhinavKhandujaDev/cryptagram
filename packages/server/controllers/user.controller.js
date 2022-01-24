@@ -23,10 +23,11 @@ async function createUser(req, res) {
 async function getUser(req, res) {
   try {
     let user = await UserModel.findOne({ username: req.params.username });
-    console.log("aaaaa => ", user);
     let userData = {
       username: user.username,
       email: user.email,
+      ethAddress: user.ethAddress,
+      _id: user._id,
     };
     return res.send({ success: true, data: userData });
   } catch (error) {
@@ -35,4 +36,27 @@ async function getUser(req, res) {
   }
 }
 
-module.exports = { getUser, createUser };
+async function update(req, res) {
+  try {
+    let userData = req.body;
+
+    delete userData["username"];
+    delete userData["email"];
+    delete userData["authId"];
+
+    let newUser = await UserModel.findByIdAndUpdate(req.user._id, {
+      ...userData,
+    });
+    let data = {
+      username: newUser.username,
+      email: newUser.email,
+      ethAddress: newUser.ethAddress,
+    };
+    return res.send({ success: true, message: "updated successfully", data });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).send({ success: false, message: "User not found" });
+  }
+}
+
+module.exports = { getUser, createUser, update };

@@ -47,6 +47,23 @@ async function getAllPosts(req, res) {
       },
       {
         $lookup: {
+          from: "users",
+          let: { from: "$from" },
+          pipeline: [
+            matchAndGet([{ $eq: [{ $toString: "$_id" }, "$$from"] }]),
+            {
+              $group: {
+                _id: "$_id",
+                ethAddress: { $first: "$ethAddress" },
+              },
+            },
+            { $unset: ["_id"] },
+          ],
+          as: "ethAddress",
+        },
+      },
+      {
+        $lookup: {
           from: "comments",
           let: { pId: "$_id" },
           pipeline: [
@@ -61,6 +78,7 @@ async function getAllPosts(req, res) {
         $addFields: {
           liked: { $in: ["$_id", "$liked.postId"] },
           bookmarked: { $in: [{ $toString: "$_id" }, "$bookmarked.postId"] },
+          ethAddress: { $first: "$ethAddress.ethAddress" },
         },
       },
       { $sort: { date: -1 } },
@@ -113,7 +131,7 @@ async function likePost(req, res) {
   let user = req.user;
   try {
     let post = await PostModel.findById(postId);
-    let count = Number(post.likesCount);
+    // let count = Number(post.likesCount);
     let model = new LikeModel({
       from: user._id,
       postId: postId,
@@ -121,10 +139,10 @@ async function likePost(req, res) {
       date: Date.now(),
     });
     await model.save();
-    count += 1;
-    await PostModel.findByIdAndUpdate(postId, {
-      likesCount: count.toString(),
-    });
+    // count += 1;
+    // await PostModel.findByIdAndUpdate(postId, {
+    //   likesCount: count.toString(),
+    // });
     return res.send({ success: true, message: "successful" });
   } catch (error) {
     return res.status(400).send({
@@ -139,12 +157,12 @@ async function unlikePost(req, res) {
   let user = req.user;
   try {
     let post = await PostModel.findById(postId);
-    let count = Number(post.likesCount);
+    // let count = Number(post.likesCount);
     await LikeModel.findOneAndDelete({ from: user._id, postId });
-    count -= 1;
-    await PostModel.findByIdAndUpdate(postId, {
-      likesCount: count.toString(),
-    });
+    // count -= 1;
+    // await PostModel.findByIdAndUpdate(postId, {
+    //   likesCount: count.toString(),
+    // });
     return res.send({ success: true, message: "successful" });
   } catch (error) {
     return res.status(400).send({
