@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
 const Post = mongoose.Schema({
-  from: { type: mongoose.SchemaTypes.String, required: true },
+  from: { type: mongoose.SchemaTypes.ObjectId, required: true },
+  fromName: { type: mongoose.SchemaTypes.String, required: true },
   fromName: { type: mongoose.SchemaTypes.String, required: true },
   date: { type: mongoose.SchemaTypes.String, required: true },
   postUrl: { type: mongoose.SchemaTypes.String },

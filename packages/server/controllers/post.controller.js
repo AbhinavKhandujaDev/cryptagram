@@ -1,10 +1,10 @@
-const { UserModel } = require("../models");
-
 const {
+  UserModel,
   LikeModel,
   PostModel,
-  BookmarkModel,
   CommentModel,
+  BookmarkModel,
+  SupportedPostModel,
 } = require("../models");
 
 function matchAndGet(fieldsArray) {
@@ -64,6 +64,19 @@ async function getAllPosts(req, res) {
       },
       {
         $lookup: {
+          from: "supportedposts",
+          let: { pId: "$_id" },
+          pipeline: [
+            matchAndGet([
+              { $eq: ["$from", req.user._id] },
+              { $eq: ["$postId", "$$pId"] },
+            ]),
+          ],
+          as: "supported",
+        },
+      },
+      {
+        $lookup: {
           from: "comments",
           let: { pId: "$_id" },
           pipeline: [
@@ -77,6 +90,7 @@ async function getAllPosts(req, res) {
       {
         $addFields: {
           liked: { $in: ["$_id", "$liked.postId"] },
+          supported: { $in: ["$_id", "$supported.postId"] },
           bookmarked: { $in: [{ $toString: "$_id" }, "$bookmarked.postId"] },
           ethAddress: { $first: "$ethAddress.ethAddress" },
         },
@@ -248,6 +262,31 @@ async function deleteComment(req, res) {
   }
 }
 
+async function supportPost(req, res) {
+  let body = req.body;
+  let user = req.user;
+  try {
+    if (!body.postId || !body.amount) {
+      throw new Error("Please send 'postId' and 'amount' keys");
+    }
+    let obj = {
+      from: user._id,
+      fromName: user.username,
+      postId: body.postId,
+      amount: body.amount,
+    };
+    let post = new SupportedPostModel(obj);
+    await post.save();
+    return res.send({ success: true, message: "successful", data: post });
+  } catch (error) {
+    console.log("supportPost error => ", error);
+    return res.status(400).send({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
 module.exports = {
   getAllPosts,
   createPost,
@@ -260,4 +299,6 @@ module.exports = {
 
   postComment,
   deleteComment,
+
+  supportPost,
 };

@@ -1,4 +1,8 @@
-import type { NextPage } from "next";
+import type {
+  NextPage,
+  GetServerSideProps,
+  GetServerSidePropsContext,
+} from "next";
 import { useEffect, useCallback, memo, useState } from "react";
 import { LoginForm, SignUpForm } from "../components";
 import Particles from "react-tsparticles";
@@ -16,11 +20,12 @@ import {
 import Router from "next/router";
 import showToast from "../helper/toast";
 import api, { saveTokenCookie } from "../helper/api";
+import auth from "../helper/auth";
 
 const particles = require("../particles.json");
 
-const auth = getAuth();
-// setPersistence(auth, inMemoryPersistence);
+const fbauth = getAuth();
+// setPersistence(fbauth, inMemoryPersistence);
 
 const Home: NextPage = () => {
   const [state, setState] = useState({
@@ -30,7 +35,7 @@ const Home: NextPage = () => {
   });
 
   // useEffect(() => {
-  //   onAuthStateChanged(auth, (user: User | null) => {
+  //   onAuthStateChanged(fbauth, (user: User | null) => {
   //     debugger;
   //     user && saveTokenCookie(user);
   //   });
@@ -50,7 +55,7 @@ const Home: NextPage = () => {
   const login = useCallback(async ({ email, password }: any) => {
     setState((prev) => ({ ...prev, formLoading: !prev.formLoading }));
     try {
-      let user = await signIn(auth, email, password);
+      let user = await signIn(fbauth, email, password);
       await saveTokenCookie(user.user);
       let cUser = await api.get(
         `/api/user/getUser?username=${user.user.displayName}`
@@ -62,7 +67,7 @@ const Home: NextPage = () => {
       Router.push("/feeds");
     } catch (error: any) {
       console.log("Login error ", error.message);
-      showToast(error.message, { type: "error" });
+      showToast.error(error.message);
       setState({ ...state, formLoading: false });
       api.delete("api/cookies/deleteAllCookies");
     }
@@ -72,7 +77,7 @@ const Home: NextPage = () => {
     async ({ email, password, username }: any) => {
       setState((prev) => ({ ...prev, formLoading: !prev.formLoading }));
       try {
-        let user = await createUser(auth, email, password);
+        let user = await createUser(fbauth, email, password);
         await updateProfile(user.user, { displayName: username });
 
         await saveTokenCookie(user.user);
@@ -82,12 +87,12 @@ const Home: NextPage = () => {
           .catch(() => {
             user.user.delete();
             setState({ ...state, formLoading: false });
-            showToast("Unable to register account", { type: "error" });
+            showToast.error("Unable to register account");
           });
       } catch (error: any) {
         console.log("SignUp error ", error.message);
-        auth.currentUser?.delete();
-        showToast(error.message, { type: "error" });
+        fbauth.currentUser?.delete();
+        showToast.error(error.message);
         setState({ ...state, formLoading: false });
         api.delete("api/cookies/deleteAllCookies");
       }
@@ -122,5 +127,11 @@ const Home: NextPage = () => {
     </div>
   );
 };
+
+export const getServerSideProps: GetServerSideProps = auth(async () => {
+  return {
+    props: {},
+  };
+});
 
 export default memo(Home);

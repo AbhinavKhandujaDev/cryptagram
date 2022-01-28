@@ -24,7 +24,7 @@ const auth = async (req, res, next) => {
     let message = "forbidden";
     let status = 403;
     if (error.code === "auth/id-token-expired") {
-      message = "ID token expired";
+      message = "Id token expired";
       status = 401;
     }
     return res.status(status).send({ success: false, message: message });

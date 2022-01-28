@@ -11,7 +11,7 @@ import auth from "../../helper/auth";
 import { LoaderView } from "../../components";
 
 const Profile: NextPage = (props: any) => {
-  const { isCurrentUser, user } = props;
+  const { isCurrentUser, username } = props;
   const [state, setstate] = useState<any>({
     posts: [],
     user: null,
@@ -20,16 +20,14 @@ const Profile: NextPage = (props: any) => {
 
   const fetchPosts = async () => {
     let res = await api.get(
-      `../api/post/getAllPosts?username=${user?.username}`
+      `../api/post/getAllPosts?username=${state.user?.username}`
     );
     return res.data;
   };
   useEffect(() => {
-    if (!user) return;
+    if (!username) return;
     (async () => {
-      let userData = await api.get(
-        `../api/user/getUser?username=${user?.username}`
-      );
+      let userData = await api.get(`../api/user/getUser?username=${username}`);
       let resp = await fetchPosts();
       setstate((prev: any) => ({
         ...prev,
@@ -39,7 +37,7 @@ const Profile: NextPage = (props: any) => {
         isloading: false,
       }));
     })();
-  }, [user]);
+  }, [username]);
   return (
     <LoaderView
       loading={state.isloading}
@@ -78,9 +76,10 @@ const Profile: NextPage = (props: any) => {
             <label
               className="flex-shrink-0 btn border btn-sm fw-bold"
               onClick={async () => {
-                await deleteTokens("..");
-                await signOut(getAuth());
-                Router.push("/");
+                signOut(getAuth()).then(async () => {
+                  await deleteTokens("..");
+                  Router.push("/");
+                });
               }}
             >
               Logout
@@ -116,9 +115,12 @@ export const getServerSideProps: GetServerSideProps = auth(
     let resp = await api.get(
       `${process.env.CLIENT_BASE_URL}/cookies/matchIdToken`
     );
+    let user = JSON.parse(ctx.req.cookies.user);
+    let puser = ctx.params?.username;
     return {
       props: {
-        isCurrentUser: resp.success,
+        isCurrentUser: user.username === puser,
+        username: puser,
       },
     };
   }

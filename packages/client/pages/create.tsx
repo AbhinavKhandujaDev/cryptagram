@@ -68,10 +68,10 @@ const Create: NextPage = () => {
               .post("/api/post/createPost", { body })
               .then(() => {
                 setstate((prev) => ({ ...prev, isUploading: false }));
-                showToast("Uploaded successfully");
+                showToast.success("Uploaded successfully");
               })
               .catch((error) => {
-                showToast("Upload failed", { type: "error" });
+                showToast.error("Upload failed");
                 setstate((prev) => ({ ...prev, isUploading: false }));
               });
           }

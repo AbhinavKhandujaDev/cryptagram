@@ -152,7 +152,9 @@ const Post = ({
               <i className={`${iconCls} mx-4 bi-share`} />
               <i className={`${iconCls} bi-chat-square-quote`} />
               <i
-                className={`${iconCls} bi-piggy-bank ms-4`}
+                className={`${iconCls} bi-piggy-bank${
+                  post?.supported ? "-fill" : ""
+                } ms-4`}
                 onClick={() => support && support(post)}
               />
               <div className="flex-grow-1" />

@@ -17,6 +17,19 @@ import api, { saveTokenCookie } from "../helper/api";
 
 const auth = getAuth();
 
+// (async () => {
+//   try {
+//     let idToken = auth.currentUser?.getIdToken();
+//     if (!idToken) throw new Error("Id token not available");
+//     let token = await api.get(
+//       `${process.env.CLIENT_BASE_URL}/api/cookies/matchIdToken?token=${idToken}`
+//     );
+//     !token.success && auth.currentUser && saveTokenCookie(auth.currentUser);
+//   } catch (error) {
+//     console.log("Session not found => ", error);
+//   }
+// })();
+
 function MyApp({ Component, pageProps, router }: AppProps | any) {
   const [nightmode, setNghtmode] = useState(true);
   const [user, setuser] = useState<any>(null);
@@ -25,13 +38,26 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
       feeds: router.asPath.includes("feeds") ? "-selected" : "",
       wallet: router.asPath.includes("wallet") ? "-selected" : "",
       create: router.asPath.includes("create") ? "-selected" : "",
-      nft: "",
+      nft: router.asPath.includes("nft") ? "-selected" : "",
       profile: router.asPath.includes("profile") ? "-selected" : "",
     }),
     [router.asPath]
   );
   const isLogin = router.pathname === "/";
   useEffect(() => {
+    // auth.onIdTokenChanged(async (user) => {
+    //   if (user) {
+    //     let idToken = await user.getIdToken();
+    //     let token = await api.get(`/api/cookies/matchIdToken?token=${idToken}`);
+    //     !token.success && saveTokenCookie(user);
+    //     !token.success &&
+    //       setuser({
+    //         ...user,
+    //         username: user.displayName,
+    //         email: user.email,
+    //       });
+    //   }
+    // });
     (async () => {
       let user = await api.get("/api/cookies/user");
       user.data && setuser(user.data);
@@ -51,21 +77,37 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
       window.ipfs = ipfs;
       window.urlSource = urlSource;
     }
-
-    onAuthStateChanged(auth, async (user: User | null) => {
-      let idToken = await user?.getIdToken();
-      if (user && idToken) {
-        let token = await api.get(`/api/cookies/matchIdToken?token=${idToken}`);
-        !token.success && saveTokenCookie(user);
-        !token.success &&
-          setuser({
-            ...user,
-            username: user.displayName,
-            email: user.email,
-          });
-      }
-    });
   }, []);
+
+  // useLayoutEffect(() => {
+  //   auth.onIdTokenChanged(async (user) => {
+  //     if (user) {
+  //       let idToken = await user.getIdToken();
+  //       let token = await api.get(`/api/cookies/matchIdToken?token=${idToken}`);
+  //       !token.success && saveTokenCookie(user);
+  //       !token.success &&
+  //         setuser({
+  //           ...user,
+  //           username: user.displayName,
+  //           email: user.email,
+  //         });
+  //     }
+  //   });
+  //   // onAuthStateChanged(auth, async (user: User | null) => {
+  //   //   debugger;
+  //   //   let idToken = await user?.getIdToken();
+  //   //   if (user && idToken) {
+  //   //     let token = await api.get(`/api/cookies/matchIdToken?token=${idToken}`);
+  //   //     !token.success && saveTokenCookie(user);
+  //   //     !token.success &&
+  //   //       setuser({
+  //   //         ...user,
+  //   //         username: user.displayName,
+  //   //         email: user.email,
+  //   //       });
+  //   //   }
+  //   // });
+  // }, []);
 
   const toggleNight = useCallback(() => {
     let body = document.getElementById("body");

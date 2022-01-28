@@ -25,14 +25,14 @@ interface SwitchProps {
 // };
 const Switch = ({
   width = 53,
-  height = 25,
+  height = 26,
   isOn = false,
   onSwitch,
 }: SwitchProps) => {
   return (
     <div
-      style={{ width, height }}
-      className="Switch rounded-pill bg-theme border flex-center-h justify-content-start pointer no-select"
+      style={{ width, height, maxWidth: width, maxHeight: height }}
+      className="Switch rounded-pill bg-theme border flex-center-h justify-content-start pointer no-select flex-grow-1 flex-shrink-0"
       onClick={onSwitch}
     >
       <div className="flex-center-h justify-content-between w-100 h-100 px-2">

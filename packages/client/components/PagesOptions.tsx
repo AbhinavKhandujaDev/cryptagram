@@ -20,9 +20,11 @@ const NavIcon = memo((props: any) => {
 // );
 
 function PagesOptions(props: any) {
-  const { status, showPost = false, user } = props;
+  const { status, showPost = false, user, cls } = props;
   return (
-    <div className="PagesOptions flex-center-h justify-content-between col-12">
+    <div
+      className={`PagesOptions flex-center-h justify-content-between col-12 ${cls}`}
+    >
       <NavIcon
         to="/feeds"
         text="Feeds"
@@ -35,7 +37,14 @@ function PagesOptions(props: any) {
         imagePath="wallet"
         selected={status?.wallet}
       />
-      {showPost && (
+      <NavIcon
+        to="/create"
+        text="Create"
+        imagePath="add"
+        imageClass="p-1"
+        selected={status?.create}
+      />
+      {/* {showPost && (
         <NavIcon
           to="/create"
           text="Create"
@@ -43,7 +52,7 @@ function PagesOptions(props: any) {
           imageClass="p-1"
           selected={status?.create}
         />
-      )}
+      )} */}
       <NavIcon to="/nft" text="NFT" imagePath="nft" selected={status?.nft} />
       <NavIcon
         to={`/profile/${user?.username}`}

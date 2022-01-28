@@ -12,6 +12,8 @@ router.delete("/like/:id", postController.unlikePost);
 router.post("/bookmark/:postId", postController.bookmark);
 router.delete("/bookmark/:postId", postController.removeBookmark);
 
+router.post("/support", postController.supportPost);
+
 router.post("/comment/:postId", postController.postComment);
 router.delete("/comment/:postId", postController.deleteComment);
 

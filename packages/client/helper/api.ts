@@ -2,8 +2,13 @@ import Error from "next/error";
 import type { User } from "firebase/auth";
 import type { NextApiResponse } from "next";
 import axios, { AxiosError } from "axios";
+import { getAuth } from "firebase/auth";
 
-export const call = async (url: string, method: string, data?: any) => {
+export const call = async (
+  url: string,
+  method: string,
+  data?: any
+): Promise<any> => {
   data = { method: method, ...data };
   data.body = JSON.stringify(data.body);
   !data.body && delete data["body"];
@@ -12,7 +17,8 @@ export const call = async (url: string, method: string, data?: any) => {
     let resp = await fetch(url, data);
     let json = await resp.json();
 
-    if (!resp.ok) {
+    if (!resp.ok || !json.success) {
+      console.log("resp => ", resp);
       throw new Error({
         statusCode: resp.status,
         title: json.message,
@@ -22,14 +28,21 @@ export const call = async (url: string, method: string, data?: any) => {
     return json;
   } catch (error: any) {
     console.log("Api Error => ", error);
+    if (error.props?.title === "Id token expired") {
+      let auth = getAuth();
+      auth.currentUser && saveTokenCookie(auth.currentUser);
+      return call(url, method, data);
+    }
     return Promise.reject({
-      message: error.props?.title,
+      message: error.props?.title || "Something went wrong",
       success: false,
     });
   }
 };
 
 export const returnErrorResp = (error: any, res: NextApiResponse) => {
+  // console.log("returnErrorResp error => ", error);
+
   if (axios.isAxiosError(error)) {
     const axError = error as AxiosError;
     let code = axError.response?.status || 400;
@@ -57,12 +70,11 @@ export const saveTokenCookie = async (user: User, urlpre: string = "") => {
   let idToken = await user.getIdToken();
   let refToken = user.refreshToken;
   let url = `${urlpre}/api/cookies/saveCookie`;
-  await api.post(url, {
-    body: { key: "idToken", value: idToken },
-  });
-  await api.post(url, {
-    body: { key: "refreshToken", value: refToken },
-  });
+  let objs = [
+    { key: "idToken", value: idToken },
+    { key: "refreshToken", value: refToken },
+  ];
+  await Promise.all(objs.map(async (o) => await api.post(url, { body: o })));
 };
 
 export const deleteTokens = async (urlpre: string) => {

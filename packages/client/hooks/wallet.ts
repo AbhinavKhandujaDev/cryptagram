@@ -1,7 +1,6 @@
 import Web3 from "web3";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useRef } from "react";
 import Transfer from "../abis/Transfer.json";
-import showToast from "../helper/toast";
 
 function wallet() {
   const tcontract = useRef<any>();

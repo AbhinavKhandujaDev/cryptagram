@@ -9,6 +9,7 @@ import api from "../helper/api";
 import { Post } from "../components";
 import auth from "../helper/auth";
 import { wallet } from "../hooks";
+import showToast from "../helper/toast";
 
 const CreateButton = memo(({ nightmode }: any) => (
   <Link href="/create">
@@ -29,12 +30,17 @@ const CreateButton = memo(({ nightmode }: any) => (
   </Link>
 ));
 
+interface FeedsPageProps {
+  loadingPosts: boolean;
+  posts?: any[] | null;
+}
+
 const Feeds: NextPage = (props: any) => {
   const { nightmode, user } = props;
   const { accounts, loadWallet, transfer, contract } = wallet();
-  const [state, setstate] = useState({
+  const [state, setstate] = useState<FeedsPageProps>({
     loadingPosts: true,
-    posts: [],
+    posts: null,
   });
 
   const fetchPosts = async () => {
@@ -91,22 +97,36 @@ const Feeds: NextPage = (props: any) => {
 
   const support = useCallback(
     async (post: any) => {
+      if (post.supported) {
+        showToast.info("Already supported!");
+        return;
+      }
       try {
         await loadWallet();
         let accs = await accounts();
         // console.log(contract);
         // console.log(user);
+        // let res = await contract.current.methods
+        //   .getSupportStatus(post._id, user._id)
+        //   .call();
+        // let amount = window.web3.utils.fromWei(res.amount, "ether");
+        // console.log("getSupportStatus => ", amount);
+        // return;
+        await transfer(accs[0], post.ethAddress, post._id, user._id);
         let res = await contract.current.methods
           .getSupportStatus(post._id, user._id)
           .call();
-        console.log("getSupportStatus => ", res);
-        return;
-        await transfer(accs[0], post.ethAddress, post._id, user._id);
+        let amount = window.web3.utils.fromWei(res.amount, "ether");
+        await api.post("/api/post/support", {
+          body: { postId: post._id, amount: `${amount} eth` },
+        });
+        showToast.success("Supported successfully");
       } catch (error) {
         console.log("post support error => ", error);
+        showToast.error("Unable to support");
       }
     },
-    [contract]
+    [contract, user]
   );
 
   const skeleton = useMemo(
@@ -127,24 +147,30 @@ const Feeds: NextPage = (props: any) => {
   );
 
   return (
-    <div id="feeds" className="py-5 flex-center-h">
-      <div className="col-12 col-sm-8 col-md-6 col-lg-4 py-3 d-flex flex-column align-items-center">
-        {state.loadingPosts
-          ? skeleton
-          : state.posts.map((post: any) => (
-              <Post
-                key={post._id}
-                post={post}
-                loading={false}
-                nightmode={nightmode}
-                postliked={liked}
-                postSaved={savePost}
-                support={support}
-                comment={comment}
-              />
-            ))}
-      </div>
-      <CreateButton nightmode={nightmode} />
+    <div id="feeds" className="page py-5 flex-center-h">
+      {state.posts?.length === 0 ? (
+        <label className="fs-1 h-100 w-100 flex-center-h">
+          No feeds available!
+        </label>
+      ) : (
+        <div className="col-12 col-sm-8 col-md-6 col-lg-4 py-3 d-flex flex-column align-items-center">
+          {state.loadingPosts
+            ? skeleton
+            : state.posts?.map((post: any) => (
+                <Post
+                  key={post._id}
+                  post={post}
+                  loading={false}
+                  nightmode={nightmode}
+                  postliked={liked}
+                  postSaved={savePost}
+                  support={support}
+                  comment={comment}
+                />
+              ))}
+        </div>
+      )}
+      {/* <CreateButton nightmode={nightmode} /> */}
     </div>
   );
 };
