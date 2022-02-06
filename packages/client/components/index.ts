@@ -7,4 +7,8 @@ export { default as Post } from "./Post";
 export { default as DropdownButton } from "./DropdownButton";
 export { default as PagesOptions } from "./PagesOptions";
 export { default as LoaderView } from "./LoaderView";
+export { default as SegmentView } from "./SegmentView";
+export { default as NFTPost } from "./NFTPost";
+export { default as NFTCreate } from "./NFTCreate";
+export { default as MediaSelectView } from "./MediaSelectView";
 export { LoginForm, SignUpForm } from "./Onboarding";

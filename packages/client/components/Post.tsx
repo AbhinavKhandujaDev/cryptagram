@@ -92,11 +92,6 @@ const Post = ({
   useEffect(() => {
     setState({ ...state, timeAgo: getTimeAgo(post?.date) });
   }, []);
-  // useEffect(() => {
-  //   if (loading) return;
-  //   const divs = Array.from(document.getElementsByClassName("loading"));
-  //   divs.forEach((e: Element) => e.classList.remove("loading"));
-  // }, [loading]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   // const timeAgo = useMemo(() => getTimeAgo(post?.date), [post?.date]);

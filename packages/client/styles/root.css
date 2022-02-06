@@ -12,7 +12,7 @@ body {
 
     --text-color: #3B3B3B;
 
-    --shadow-color: rgba(0, 0, 0, .20);
+    --shadow-color: rgba(0, 0, 0, 0.20);
 
     background: #ECEFF1 !important;
 }
@@ -32,7 +32,7 @@ body.dark {
 
     --text-color: #ECEFF1;
 
-    --shadow-color: rgba(255, 255, 255, 0.20);
+    --shadow-color: rgba(255, 255, 255, 0.084);
 
     background: #212121 !important;
 
@@ -55,5 +55,5 @@ label {
 }
 
 .shadow {
-    box-shadow: 0 0 3rem var(--shadow-color) !important;
+    box-shadow: 0 0 1rem var(--shadow-color) !important;
 }

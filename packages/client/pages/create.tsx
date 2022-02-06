@@ -2,42 +2,12 @@ import type { NextPage, GetServerSideProps } from "next";
 import { useState, memo, useEffect, useCallback } from "react";
 import auth from "../helper/auth";
 import api from "../helper/api";
-import { Button } from "../components";
+import { Button, MediaSelectView } from "../components";
 import showToast from "../helper/toast";
-
-const MediaSelectView = memo(({ onMediaSelect, isMediaSelected }: any) => {
-  return (
-    <div
-      className={`w-100 border fs-1 fw-bold flex-center-h ratio-eq rounded-3 overflow-hidden ${
-        isMediaSelected ? "d-none" : ""
-      }`}
-    >
-      <div className="position-absolute flex-center-c w-100 h-100">
-        <div className="col-5">
-          <img src="/images/upload.png" className="w-100 ratio-eq" />
-        </div>
-        <label className="fs-3 fs-bold text-center mt-5">
-          Click or Drop file
-        </label>
-      </div>
-      <input
-        type="file"
-        className="file-select-input w-100 h-100 ratio-eq opacity-0"
-        accept="image/png, image/jpeg, image/jpg, video/mp4, video/quicktime"
-        onChange={onMediaSelect}
-      />
-    </div>
-  );
-});
-
-interface CreatePageProps {
-  media?: File | null;
-  caption?: string;
-  isUploading?: boolean;
-}
+import { CreateObj } from "../interfaces";
 
 const Create: NextPage = () => {
-  const [state, setstate] = useState<CreatePageProps>({
+  const [state, setstate] = useState<CreateObj>({
     media: null,
     caption: "",
   });
@@ -89,15 +59,18 @@ const Create: NextPage = () => {
       <div className="col-11 col-sm-8 col-md-5 col-lg-4 my-5">
         <div className="bg-theme p-3 rounded-3">
           <MediaSelectView
-            isMediaSelected={state?.media ? true : false}
-            // onMediaSelect={captureFile}
+            media={state?.media}
+            remove={(e: any) => {
+              e.target.files = [];
+              setstate({ ...state, media: null });
+            }}
             onMediaSelect={(e: any) => {
               let files = e.target.files;
               if (!files[0]) return;
               setstate({ ...state, media: files[0] });
             }}
           />
-          {state?.media && (
+          {/* {state?.media && (
             <div>
               <img
                 style={{ objectFit: "contain" }}
@@ -124,7 +97,7 @@ const Create: NextPage = () => {
                 </button>
               </div>
             </div>
-          )}
+          )} */}
         </div>
         <textarea
           style={{ border: "none", outline: "none" }}

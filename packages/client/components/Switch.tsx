@@ -2,27 +2,12 @@ import { MouseEvent, memo } from "react";
 
 interface SwitchProps {
   text?: string;
-  // id: string;
   isOn?: boolean;
   width?: number;
   height?: number;
   onSwitch?: (event: MouseEvent<HTMLDivElement>) => void;
 }
 
-// const Switch = (props: SwitchProps) => {
-//   return (
-//     <div className="Switch form-check form-switch">
-//       <input
-//         className="form-check-input no-focus border"
-//         type="checkbox"
-//         id={props.id}
-//       />
-//       <label className="form-check-label" htmlFor={props.id}>
-//         {props.text}
-//       </label>
-//     </div>
-//   );
-// };
 const Switch = ({
   width = 53,
   height = 26,

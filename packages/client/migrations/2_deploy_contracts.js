@@ -1,7 +1,9 @@
 const Transfer = artifacts.require("Transfer");
-const Post = artifacts.require("Post");
+const nft = artifacts.require("NFT");
+const nftMarket = artifacts.require("NFTMarket");
 
-module.exports = function (deployer) {
-  deployer.deploy(Transfer);
-  deployer.deploy(Post);
+module.exports = async function (deployer) {
+  await deployer.deploy(Transfer);
+  await deployer.deploy(nft);
+  await deployer.deploy(nftMarket);
 };

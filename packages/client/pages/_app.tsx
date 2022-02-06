@@ -70,7 +70,7 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
 
     if (!window.ipfs) {
       const ipfs = create({
-        host: "127.0.0.1",
+        host: "localhost",
         port: 5001,
         protocol: "http",
       });

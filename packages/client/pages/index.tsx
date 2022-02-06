@@ -24,7 +24,7 @@ import auth from "../helper/auth";
 
 const particles = require("../particles.json");
 
-const fbauth = getAuth();
+// const fbauth = getAuth();
 // setPersistence(fbauth, inMemoryPersistence);
 
 const Home: NextPage = () => {
@@ -33,6 +33,8 @@ const Home: NextPage = () => {
     formLoading: false,
     loadingState: true,
   });
+
+  const fbauth = getAuth();
 
   // useEffect(() => {
   //   onAuthStateChanged(fbauth, (user: User | null) => {

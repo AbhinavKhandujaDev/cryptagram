@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
+const app = express();
 const admin = require("firebase-admin");
 
 const serviceAccount = require("./helper/cryptagram-service-account-key.json");
@@ -11,12 +12,15 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-const app = express();
 const url = "mongodb://localhost:27017/cryptagram";
-mongoose.connect(url, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(
+  url,
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  },
+  (error) => error && console.log("mongodb connect error => ", error)
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({ origin: `http://localhost:${process.env.PORT}` }));
