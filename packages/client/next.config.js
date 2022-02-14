@@ -13,4 +13,7 @@ module.exports = {
   PORT: process.env.PORT,
   CLIENT_BASE_URL: process.env.CLIENT_BASE_URL,
   MEDIA_BASE_URL: process.env.MEDIA_BASE_URL,
+  env: {
+    MEDIA_BASE_URL: process.env.MEDIA_BASE_URL,
+  },
 };

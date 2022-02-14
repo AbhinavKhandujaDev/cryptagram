@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
-import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "./NFT.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 contract NFTMarket {
     struct MarketItem {
-        uint itemId;
+        uint256 itemId;
         string name;
         address nftContract;
         uint256 tokenId;
@@ -18,7 +18,7 @@ contract NFTMarket {
     }
 
     event MarketItemCreated (
-        uint indexed itemId,
+        uint256 indexed itemId,
         address indexed nftContract,
         uint256 indexed tokenId,
         address owner,
@@ -28,6 +28,7 @@ contract NFTMarket {
     );
 
     event random(address addr);
+    event random2(string msg, address addr);
 
     uint256 private itemId;
     bool private locked = false;
@@ -57,42 +58,6 @@ contract NFTMarket {
         return owner;
     }
 
-    // function createMarketItem(
-    //     address nftContract, 
-    //     uint256 price,
-    //     string calldata tokenURI
-    // ) public payable lockEntry returns(bytes memory) {
-    //     require(price > 0, "Price must be at least 1 wei");
-    //     require(price == listingPrice, "Price must be equal to listing price (0.025 eth)");
-
-    //     // uint256 tokenId = NFT(nftContract).createToken(tokenURI);
-    //     (bool status, bytes memory result) = nftContract.call{gas: 10000}(abi.encodePacked(bytes4(keccak256("createToken(string)")), tokenURI));
-
-    //     // uint256 itemRoyality = (price * royality) / 100;
-    //     // idToMarketItem[itemId] =  MarketItem(
-    //     //     itemId,
-    //     //     nftContract,
-    //     //     tokenId,
-    //     //     payable(msg.sender),
-    //     //     payable(msg.sender),
-    //     //     price,
-    //     //     itemRoyality,
-    //     //     false
-    //     // );
-        
-    //     // emit MarketItemCreated(
-    //     //     itemId,
-    //     //     nftContract,
-    //     //     tokenId,
-    //     //     msg.sender,
-    //     //     msg.sender,
-    //     //     price,
-    //     //     itemRoyality
-    //     // );
-    //     // itemId ++;
-    //     return result;//idToMarketItem[itemId - 1];
-    // }
-
     function createMarketItem(
         address nftContract, 
         uint256 tokenId,
@@ -111,7 +76,7 @@ contract NFTMarket {
             payable(msg.sender),
             price,
             itemRoyality,
-            false
+            true
         );
         
         emit MarketItemCreated(
@@ -128,25 +93,46 @@ contract NFTMarket {
         return idToMarketItem[itemId - 1];
     }
 
-    function sellMarketItem(
-        address nftContract,
-        uint256 tokenId
-    ) public payable lockEntry {
-        MarketItem memory item = idToMarketItem[tokenId];
+    // function sellMarketItem(
+    //     address nftContract,
+    //     uint256 mItemId
+    // ) public payable lockEntry {
+    //     MarketItem memory item = idToMarketItem[mItemId];
 
-        require(msg.value == item.price, "Please submit the asking price in order to complete the purchase");
+    //     require(owner != msg.sender, "Your already own this item");
+    //     require(item.price > 0, "Please submit the asking price in order to complete the purchase");
 
-        address creatorAddress = ERC721(nftContract).ownerOf(tokenId);
-        bool success = creatorAddress == msg.sender;
-        if (creatorAddress != msg.sender) {
-            (success, ) = payable(creatorAddress).call{value: item.royalityFee}("");
+    //     address currentOwner = NFT(nftContract).ownerOf(item.tokenId);
+
+    //     bool success = item.creator == msg.sender;
+    //     if (currentOwner != msg.sender) {
+    //         (success, ) = payable(currentOwner).call{value: item.royalityFee}("");
+    //     }
+    //     require(success, "Can't proceed without paying royality to the creator");
+
+    //     (bool success2, ) = payable(currentOwner).call{value: item.price - item.royalityFee}("");
+    //     require(success2, "Can't proceed without paying the owner");
+    //     NFT(nftContract).transferFrom(currentOwner, msg.sender, item.tokenId);
+    //     idToMarketItem[mItemId].owner = payable(msg.sender);
+    // }
+    
+    function sellMarketItem(uint256 mItemId) public payable {
+        MarketItem memory item = idToMarketItem[mItemId];
+        require(msg.value == item.price, "Invalidprice value");
+        require(item.owner != msg.sender, "You already own this item");
+
+        address currentOwner = IERC721(item.nftContract).ownerOf(item.tokenId);
+        
+        bool success = true;
+        if (currentOwner != msg.sender) {
+            (success, ) = item.creator.call{value: item.royalityFee}("");
         }
         require(success, "Can't proceed without paying royality to the creator");
 
-        (bool success2, ) = payable(idToMarketItem[itemId].owner).call{value: msg.value - item.royalityFee}("");
+        (bool success2, ) = payable(currentOwner).call{value: msg.value - item.royalityFee}("");
         require(success2, "Can't proceed without paying the owner");
-        ERC721(nftContract).transferFrom(item.owner, msg.sender, item.tokenId);
-        idToMarketItem[tokenId].owner = payable(msg.sender);
+        IERC721(item.nftContract).transferFrom(currentOwner, msg.sender, item.tokenId);
+        idToMarketItem[mItemId].owner = payable(msg.sender);
     }
 
     function getMarketItems() public view returns(MarketItem[] memory) {
@@ -169,14 +155,5 @@ contract NFTMarket {
         }
         return arr;
     }
-
-    // function getTokenURI(address nftContract, uint256 tokenId) public view returns(string memory) {
-    //     require(nftContract != address(0), "Contract address id is required");
-    //     require(tokenId >= 0, "Token id is required");
-    //     require(msg.sender != address(0), "Account address id is required");
-    //     // require(idToMarketItem[tokenId].owner == msg.sender, "Not authorised to view the token uri");
-    //     string memory uri = ERC721(nftContract).tokenURI(tokenId);
-    //     return uri;
-    // }
 
 }

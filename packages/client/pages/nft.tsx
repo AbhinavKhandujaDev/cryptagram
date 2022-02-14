@@ -13,8 +13,14 @@ interface NFTPageState {
 }
 
 const Nft: NextPage = (props: any) => {
-  const { fetchItems, createNFTItem, getTokenUri, itemCreatedByUser, loaded } =
-    nft();
+  const {
+    fetchItems,
+    createNFTItem,
+    getTokenUri,
+    itemCreatedByUser,
+    buyItem,
+    loaded,
+  } = nft();
   const [state, setState] = useState<NFTPageState>({
     selected: 0,
     nftItems: [],
@@ -68,10 +74,29 @@ const Nft: NextPage = (props: any) => {
       let hasUploaded = item.transactionHash.length > 3;
       let text = hasUploaded ? "Uploaded successfully" : "Upload failed";
       hasUploaded ? showToast.success(text) : showToast.error(text);
+
+      let items = await fetchItems();
+      let nftItems: NFTItem[] = await Promise.all(items.map(getNftItem));
+      setState((prev) => ({ ...prev, selected: 0, nftItems }));
     },
     [loaded]
   );
 
+  const buy = useCallback(
+    async (e: any) => {
+      let i = Number(e.target.id);
+      let item = state.nftItems[i];
+      buyItem(item)
+        .then(() => {
+          showToast.success("Bought successfully");
+        })
+        .catch((error: any) => {
+          console.log(error);
+          showToast.error("Unable to buy item");
+        });
+    },
+    [loaded, state.nftItems]
+  );
   const notFound = useCallback(
     (text: string) => (
       <label className="fs-1 w-100 text-center text-muted">{text}</label>
@@ -81,8 +106,8 @@ const Nft: NextPage = (props: any) => {
 
   let nftList = useMemo(() => {
     return state.nftItems?.length > 0
-      ? state.nftItems.map((item: NFTItem) => (
-          <NFTPost key={item.itemId} item={item} />
+      ? state.nftItems.map((item: NFTItem, i: number) => (
+          <NFTPost key={item.itemId} id={i} item={item} buy={buy} />
         ))
       : notFound("No items found");
   }, [state.nftItems]);

@@ -39,9 +39,11 @@ const NFTCreate = ({ createNFT }: any) => {
             let hasUploaded = hash.length > 3;
 
             if (hasUploaded) {
-              let url = `https://ipfs.io/ipfs/${hash}`;
+              let url = `https://ipfs.io/ipfs/${hash}?filename=${file.name}`;
+              // let url = https://ipfs.io/ipfs/QmfTD2tRKoeiuXH1dDy4NvdPzvtKAbHn8na7KF1HHBh4YM?filename=add-selected.png
+              // let url = `http://${hash}.ipfs.localhost:8080`;
               // let url = `ipfs://${hash}`;
-              createNFT && createNFT(url, state.caption);
+              createNFT && createNFT(url, state.caption?.trim());
             } else {
               showToast.error("Upload failed");
             }
@@ -52,7 +54,7 @@ const NFTCreate = ({ createNFT }: any) => {
             setstate({
               ...state,
               isUploading: false,
-              media: hasUploaded ? null : state.media,
+              // media: hasUploaded ? null : state.media,
               caption: "",
             });
           }

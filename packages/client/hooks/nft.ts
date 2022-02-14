@@ -3,6 +3,7 @@ import NFT from "../abis/NFT.json";
 import NFTMarket from "../abis/NFTMarket.json";
 import { useRef, useCallback, useEffect, useState, useMemo } from "react";
 import wallet from "./wallet";
+import { NFTItem } from "../interfaces";
 
 function nft() {
   const { loadWallet, accounts } = wallet();
@@ -18,6 +19,8 @@ function nft() {
       await loadNftContracts();
       console.log("NFT contracts loaded");
       setloaded(true);
+      let nftOwner = await nftCont.current.methods.ownerOf(0).call();
+      console.log("nftOwner => ", nftOwner);
     })();
   }, []);
 
@@ -92,20 +95,21 @@ function nft() {
     let uri = await contract.methods.itemsCreatedByMe().call({ from: accs[0] });
     return uri;
   }, [loaded]);
-  // const getTokenUri = useCallback(
-  //   async (token: number) => {
-  //     if (!loaded) return;
-  //     let accs = await accounts();
-  //     let contract = nftMarketCont.current;
-  //     console.log("getTokenUri => ", accs[0]);
 
-  //     let uri = await contract.methods
-  //       .getTokenURI(contract._address, token)
-  //       .call({ from: accs[0] });
-  //     return uri;
-  //   },
-  //   [loaded]
-  // );
+  const buyItem = useCallback(
+    async (item: NFTItem) => {
+      let accs = await accounts();
+      let contract = nftMarketCont.current;
+      // let amt = Number(item.price) / 10;
+      let price = web3.utils.toWei(item.price, "ether");
+      let txn = await contract.methods
+        .sellMarketItem(item.itemId)
+        .send({ from: accs[0], value: price });
+      console.log("Returned txn is ==> ", txn);
+      return txn;
+    },
+    [loaded]
+  );
 
   return {
     nftCont: nftCont.current,
@@ -114,6 +118,7 @@ function nft() {
     createNFTItem,
     getTokenUri,
     itemCreatedByUser,
+    buyItem,
     loaded,
   };
 }
