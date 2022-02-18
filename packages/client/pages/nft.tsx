@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext, NextPage } from "next";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { SegmentView, NFTPost, NFTCreate } from "../components";
 import showToast from "../helper/toast";
-import { nft } from "../hooks";
+import { nft, wallet } from "../hooks";
 import { NFTItem } from "../interfaces";
 import web3 from "web3";
 
@@ -10,6 +10,7 @@ interface NFTPageState {
   selected: number;
   nftItems: NFTItem[];
   created: NFTItem[];
+  collected: NFTItem[];
 }
 
 const Nft: NextPage = (props: any) => {
@@ -18,13 +19,18 @@ const Nft: NextPage = (props: any) => {
     createNFTItem,
     getTokenUri,
     itemCreatedByUser,
+    itemsCollected,
     buyItem,
     loaded,
   } = nft();
+
+  const { accs } = wallet();
+
   const [state, setState] = useState<NFTPageState>({
     selected: 0,
     nftItems: [],
     created: [],
+    collected: [],
   });
 
   const getNftItem = useCallback(
@@ -67,10 +73,21 @@ const Nft: NextPage = (props: any) => {
       })();
   }, [loaded, state.selected]);
 
+  // useEffect(() => {
+  //   loaded &&
+  //     state.selected === 1 &&
+  //     state.collected.length === 0 &&
+  //     (async () => {
+  //       let items = await itemsCollected();
+  //       let collected: NFTItem[] = await Promise.all(items.map(getNftItem));
+  //       setState((prev) => ({ ...prev, collected }));
+  //     })();
+  // }, [loaded, state.selected]);
+
   const createNFT = useCallback(
-    async (uri: string, name: string) => {
+    async (uri: string, name: string, isSelling: boolean) => {
       if (!loaded) return;
-      let item = await createNFTItem(uri, "0.025", name);
+      let item = await createNFTItem(uri, "0.025", name, isSelling);
       let hasUploaded = item.transactionHash.length > 3;
       let text = hasUploaded ? "Uploaded successfully" : "Upload failed";
       hasUploaded ? showToast.success(text) : showToast.error(text);
@@ -83,9 +100,7 @@ const Nft: NextPage = (props: any) => {
   );
 
   const buy = useCallback(
-    async (e: any) => {
-      let i = Number(e.target.id);
-      let item = state.nftItems[i];
+    async (item: NFTItem) => {
       buyItem(item)
         .then(() => {
           showToast.success("Bought successfully");
@@ -107,10 +122,24 @@ const Nft: NextPage = (props: any) => {
   let nftList = useMemo(() => {
     return state.nftItems?.length > 0
       ? state.nftItems.map((item: NFTItem, i: number) => (
-          <NFTPost key={item.itemId} id={i} item={item} buy={buy} />
+          <NFTPost
+            walletAddr={accs[0]}
+            key={item.itemId}
+            id={i}
+            item={item}
+            buy={buy}
+          />
         ))
       : notFound("No items found");
-  }, [state.nftItems]);
+  }, [state.nftItems, accs]);
+
+  let collectedList = useMemo(() => {
+    return state.collected?.length > 0
+      ? state.collected.map((item: NFTItem) => (
+          <NFTPost key={item.itemId} item={item} />
+        ))
+      : notFound("No items found");
+  }, [state.collected]);
 
   let createdList = useMemo(() => {
     return state.created?.length > 0
@@ -133,8 +162,8 @@ const Nft: NextPage = (props: any) => {
           <div className="row w-100 my-3 mx-0 flex-center-h">{nftList}</div>
         )}
         {state.selected === 1 && (
-          <div className="h-100 py-5 my-5">
-            {notFound("No items collected")}
+          <div className="row w-100 my-3 mx-0 flex-center-h">
+            {collectedList}
           </div>
         )}
         {state.selected === 2 && (

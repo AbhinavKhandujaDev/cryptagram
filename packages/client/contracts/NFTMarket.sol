@@ -36,6 +36,7 @@ contract NFTMarket {
     uint256 listingPrice = 0.025 ether;
     mapping(uint256 => MarketItem) private idToMarketItem;
     mapping(address => uint256) private addressToItemsCreated;
+    mapping(address => uint256) private addressToItemsCollected;
     uint256 private constant royality = 10;
 
     constructor() {
@@ -62,7 +63,8 @@ contract NFTMarket {
         address nftContract, 
         uint256 tokenId,
         uint256 price,
-        string memory name
+        string memory name,
+        bool enlist
     ) public payable lockEntry returns(MarketItem memory) {
         require(price > 0, "Price must be at least 1 wei");
         require(price >= listingPrice, "Price must be greater than or equal to listing price (0.025 eth)");
@@ -76,7 +78,7 @@ contract NFTMarket {
             payable(msg.sender),
             price,
             itemRoyality,
-            true
+            enlist
         );
         
         emit MarketItemCreated(
@@ -88,37 +90,16 @@ contract NFTMarket {
             price,
             itemRoyality
         );
-        addressToItemsCreated[msg.sender]++; 
+        addressToItemsCreated[msg.sender]++;
+        addressToItemsCollected[msg.sender]++;
         itemId++ ;
         return idToMarketItem[itemId - 1];
     }
-
-    // function sellMarketItem(
-    //     address nftContract,
-    //     uint256 mItemId
-    // ) public payable lockEntry {
-    //     MarketItem memory item = idToMarketItem[mItemId];
-
-    //     require(owner != msg.sender, "Your already own this item");
-    //     require(item.price > 0, "Please submit the asking price in order to complete the purchase");
-
-    //     address currentOwner = NFT(nftContract).ownerOf(item.tokenId);
-
-    //     bool success = item.creator == msg.sender;
-    //     if (currentOwner != msg.sender) {
-    //         (success, ) = payable(currentOwner).call{value: item.royalityFee}("");
-    //     }
-    //     require(success, "Can't proceed without paying royality to the creator");
-
-    //     (bool success2, ) = payable(currentOwner).call{value: item.price - item.royalityFee}("");
-    //     require(success2, "Can't proceed without paying the owner");
-    //     NFT(nftContract).transferFrom(currentOwner, msg.sender, item.tokenId);
-    //     idToMarketItem[mItemId].owner = payable(msg.sender);
-    // }
     
     function sellMarketItem(uint256 mItemId) public payable {
         MarketItem memory item = idToMarketItem[mItemId];
-        require(msg.value == item.price, "Invalidprice value");
+        require(item.isSelling, "Item not for sale");
+        require(msg.value == item.price, "Invalid price value");
         require(item.owner != msg.sender, "You already own this item");
 
         address currentOwner = IERC721(item.nftContract).ownerOf(item.tokenId);
@@ -132,7 +113,26 @@ contract NFTMarket {
         (bool success2, ) = payable(currentOwner).call{value: msg.value - item.royalityFee}("");
         require(success2, "Can't proceed without paying the owner");
         IERC721(item.nftContract).transferFrom(currentOwner, msg.sender, item.tokenId);
+        addressToItemsCollected[currentOwner]--;
         idToMarketItem[mItemId].owner = payable(msg.sender);
+        idToMarketItem[mItemId].isSelling = false;
+    }
+
+    function changeSellingStatus(uint256 mItemId) payable public {
+        MarketItem memory item = idToMarketItem[mItemId];
+        require(item.owner == msg.sender, "Only item owner can change the status");
+        idToMarketItem[mItemId].isSelling = !idToMarketItem[mItemId].isSelling;
+
+        if (idToMarketItem[mItemId].isSelling) {
+            // IERC721(item.nftContract).approve(address(this), item.tokenId);
+            IERC721(item.nftContract).setApprovalForAll(address(this), true);
+        }else {
+            IERC721(item.nftContract).setApprovalForAll(item.owner, true);
+        }
+    }
+
+    function getContAddr() public view returns(address) {
+        return address(this);    
     }
 
     function getMarketItems() public view returns(MarketItem[] memory) {
@@ -149,7 +149,20 @@ contract NFTMarket {
         uint256 indx = 0;
         for (uint256 index = 0; index < itemId; index++) {
             if (idToMarketItem[index].creator == msg.sender) {
-                arr[indx] = idToMarketItem[indx];
+                arr[indx] = idToMarketItem[index];
+                indx++;
+            }
+        }
+        return arr;
+    }
+    
+    function itemsCollected() public view returns(MarketItem[] memory) {
+        uint256 count = addressToItemsCollected[msg.sender];
+        MarketItem[] memory arr = new MarketItem[](count);
+        uint256 indx = 0;
+        for (uint256 index = 0; index < itemId; index++) {
+            if (idToMarketItem[index].owner == msg.sender) {
+                arr[indx] = idToMarketItem[index];
                 indx++;
             }
         }

@@ -5,6 +5,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "nftMarketTest": "truffle test test/nftMarket.test.js",
     "lint": "next lint"
   },
   "dependencies": {

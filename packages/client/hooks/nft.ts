@@ -42,7 +42,12 @@ function nft() {
   };
 
   const createNFTItem = useCallback(
-    async (uri: string, price: string, name: string) => {
+    async (
+      uri: string,
+      price: string,
+      name: string,
+      isSelling: boolean = false
+    ) => {
       let accs = await accounts();
       let nftTxn = await nftCont.current?.methods
         .createToken(uri)
@@ -54,7 +59,13 @@ function nft() {
 
       console.log("nft name is => ", name);
       let marketItem = await nftMarketCont.current?.methods
-        .createMarketItem(nftCont.current._address, currentId, amount, name)
+        .createMarketItem(
+          nftCont.current._address,
+          currentId,
+          amount,
+          name,
+          isSelling
+        )
         .send({ from: accs[0] });
 
       let itemId = await nftMarketCont.current?.methods
@@ -93,6 +104,8 @@ function nft() {
     let accs = await accounts();
     let contract = nftMarketCont.current;
     let uri = await contract.methods.itemsCreatedByMe().call({ from: accs[0] });
+    console.log("Sender is => ", accs[0]);
+    console.log("Items are => ", uri);
     return uri;
   }, [loaded]);
 
@@ -100,7 +113,6 @@ function nft() {
     async (item: NFTItem) => {
       let accs = await accounts();
       let contract = nftMarketCont.current;
-      // let amt = Number(item.price) / 10;
       let price = web3.utils.toWei(item.price, "ether");
       let txn = await contract.methods
         .sellMarketItem(item.itemId)
@@ -111,6 +123,14 @@ function nft() {
     [loaded]
   );
 
+  const itemsCollected = useCallback(async () => {
+    let accs = await accounts();
+    let contract = nftMarketCont.current;
+    let txn = await contract.methods.itemsCollected().call({ from: accs[0] });
+    console.log("itemsCollected ==> ", txn);
+    return txn;
+  }, [loaded]);
+
   return {
     nftCont: nftCont.current,
     nftMarket: nftMarketCont.current,
@@ -119,6 +139,7 @@ function nft() {
     getTokenUri,
     itemCreatedByUser,
     buyItem,
+    itemsCollected,
     loaded,
   };
 }

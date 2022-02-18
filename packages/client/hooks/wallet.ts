@@ -1,12 +1,23 @@
 import Web3 from "web3";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import Transfer from "../abis/Transfer.json";
 
 function wallet() {
   const tcontract = useRef<any>();
+  const accountsRef = useRef<any>();
+
+  useEffect(() => {
+    (async () => {
+      await loadWallet();
+      await loadContract();
+      let accounts = await window.ethereum.request({ method: "eth_accounts" });
+      accountsRef.current = accounts;
+    })();
+  }, []);
 
   const accounts = async () => {
     let accounts = await window.ethereum.request({ method: "eth_accounts" });
+    accountsRef.current = accounts;
     return accounts;
   };
 
@@ -86,6 +97,7 @@ function wallet() {
   };
   return {
     accounts,
+    accs: accountsRef.current,
     loadWallet,
     getEthBalance,
     transfer,

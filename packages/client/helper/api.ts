@@ -30,7 +30,7 @@ export const call = async (
     console.log("Api Error => ", error);
     if (error.props?.title === "Id token expired") {
       let auth = getAuth();
-      auth.currentUser && saveTokenCookie(auth.currentUser);
+      auth.currentUser && (await saveTokenCookie(auth.currentUser));
       return call(url, method, data);
     }
     return Promise.reject({

@@ -36,7 +36,12 @@ const Navbar = (props: NavbarProps) => {
         <PagesOptions status={status} user={user} cls="d-none d-md-flex w-50" />
       </div>
       <div className="flex-center-h justify-content-end">
-        <Switch isOn={nightmode} onSwitch={switchTheme} />
+        <Switch
+          switchOnElement="☀️"
+          switchOffElement="☾"
+          isOn={nightmode}
+          onSwitch={switchTheme}
+        />
       </div>
     </nav>
   );
