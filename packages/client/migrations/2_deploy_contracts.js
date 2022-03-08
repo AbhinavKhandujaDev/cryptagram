@@ -1,10 +1,16 @@
 const Transfer = artifacts.require("Transfer");
 const nft = artifacts.require("NFT");
 const nftMarket = artifacts.require("NFTMarket");
+const crypt = artifacts.require("CRYPT");
+const nftStore = artifacts.require("NFTStore");
+
+const dummyAddr = "0x3b1194691A7a118D44d3f851440d8071AE5FcC34";
 
 module.exports = async function (deployer) {
   await deployer.deploy(Transfer);
   await deployer.deploy(nftMarket);
+  await deployer.deploy(nftStore, dummyAddr);
+  await deployer.deploy(crypt, dummyAddr);
 
   let market = await nftMarket.deployed();
   await deployer.deploy(nft, market.address);

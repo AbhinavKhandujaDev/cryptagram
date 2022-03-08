@@ -14,7 +14,6 @@ contract NFTMarket {
         address payable creator;
         uint256 price;
         uint256 royalityFee;
-        bool isSelling;
     }
 
     event MarketItemCreated (
@@ -32,7 +31,6 @@ contract NFTMarket {
 
     uint256 private itemId;
     bool private locked = false;
-    address payable private owner;
     uint256 listingPrice = 0.025 ether;
     mapping(uint256 => MarketItem) private idToMarketItem;
     mapping(address => uint256) private addressToItemsCreated;
@@ -41,7 +39,6 @@ contract NFTMarket {
 
     constructor() {
         itemId = 0;
-        owner = payable(msg.sender);
     }
 
     modifier lockEntry() {
@@ -55,16 +52,11 @@ contract NFTMarket {
         return itemId;
     }
 
-    function getOwner() public view returns(address) {
-        return owner;
-    }
-
     function createMarketItem(
         address nftContract, 
         uint256 tokenId,
         uint256 price,
-        string memory name,
-        bool enlist
+        string memory name
     ) public payable lockEntry returns(MarketItem memory) {
         require(price > 0, "Price must be at least 1 wei");
         require(price >= listingPrice, "Price must be greater than or equal to listing price (0.025 eth)");
@@ -77,8 +69,7 @@ contract NFTMarket {
             payable(msg.sender),
             payable(msg.sender),
             price,
-            itemRoyality,
-            enlist
+            itemRoyality
         );
         
         emit MarketItemCreated(
@@ -98,7 +89,7 @@ contract NFTMarket {
     
     function sellMarketItem(uint256 mItemId) public payable {
         MarketItem memory item = idToMarketItem[mItemId];
-        require(item.isSelling, "Item not for sale");
+        require(item.owner == address(this), "Item not for sale");
         require(msg.value == item.price, "Invalid price value");
         require(item.owner != msg.sender, "You already own this item");
 
@@ -115,24 +106,6 @@ contract NFTMarket {
         IERC721(item.nftContract).transferFrom(currentOwner, msg.sender, item.tokenId);
         addressToItemsCollected[currentOwner]--;
         idToMarketItem[mItemId].owner = payable(msg.sender);
-        idToMarketItem[mItemId].isSelling = false;
-    }
-
-    function changeSellingStatus(uint256 mItemId) payable public {
-        MarketItem memory item = idToMarketItem[mItemId];
-        require(item.owner == msg.sender, "Only item owner can change the status");
-        idToMarketItem[mItemId].isSelling = !idToMarketItem[mItemId].isSelling;
-
-        if (idToMarketItem[mItemId].isSelling) {
-            // IERC721(item.nftContract).approve(address(this), item.tokenId);
-            IERC721(item.nftContract).setApprovalForAll(address(this), true);
-        }else {
-            IERC721(item.nftContract).setApprovalForAll(item.owner, true);
-        }
-    }
-
-    function getContAddr() public view returns(address) {
-        return address(this);    
     }
 
     function getMarketItems() public view returns(MarketItem[] memory) {
