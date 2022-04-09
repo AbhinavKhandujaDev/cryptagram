@@ -9,10 +9,13 @@ export const call = async (
   method: string,
   data?: any
 ): Promise<any> => {
-  data = { method: method, ...data };
+  data = {
+    method: method,
+    ...data,
+  };
   data.body = JSON.stringify(data.body);
   !data.body && delete data["body"];
-  // console.log(data);
+  // console.log("body data is ===> ", data);
   try {
     let resp = await fetch(url, data);
     let json = await resp.json();
@@ -30,8 +33,13 @@ export const call = async (
     console.log("Api Error => ", error);
     if (error.props?.title === "Id token expired") {
       let auth = getAuth();
-      auth.currentUser && (await saveTokenCookie(auth.currentUser));
-      return call(url, method, data);
+      if (!auth.currentUser) {
+        await deleteTokens("../");
+        window.location.href = "/";
+      } else {
+        await saveTokenCookie(auth.currentUser);
+        return call(url, method, data);
+      }
     }
     return Promise.reject({
       message: error.props?.title || "Something went wrong",
@@ -42,7 +50,6 @@ export const call = async (
 
 export const returnErrorResp = (error: any, res: NextApiResponse) => {
   // console.log("returnErrorResp error => ", error);
-
   if (axios.isAxiosError(error)) {
     const axError = error as AxiosError;
     let code = axError.response?.status || 400;

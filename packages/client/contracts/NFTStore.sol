@@ -19,6 +19,7 @@ contract NFTStore {
         uint256 price;
         string uri;
         uint256 royaltyPercent;
+        bool isSelling;
     }
 
     uint256 private itemId;
@@ -51,27 +52,24 @@ contract NFTStore {
         string memory uri, 
         string memory name,
         uint256 price,
-        uint256 tId,
-        uint256 royaltyPercent
+        // uint256 tId,
+        uint256 royaltyPercent,
+        bool isSelling
     ) public payable lockEntry {
         require(price > 0, "Price must be at least 1 wei");
-        // uint256 tId = CRYPT(nftContract).createToken(uri, msg.sender);
-        // (bool success,) = nftContract.delegatecall(
-        //     abi.encodeWithSignature("createToken(string,address)", uri, msg.sender)
-        // );
-        // require(success, "Unable to createToken");
-        // uint256 tId = CRYPT(nftContract).getLastTokenId();
-        address payable addr = payable(msg.sender);
+        address payable creator = payable(msg.sender);
+        uint256 tId = CRYPT(nftContract).createToken(uri, creator);
         idToItem[itemId] = Item(
             itemId, 
             name, 
             nftContract, 
             tId, 
-            addr, 
-            addr, 
+            creator, 
+            creator, 
             price, 
             uri,
-            royaltyPercent
+            royaltyPercent,
+            isSelling
         );
         addressToItemsCount[msg.sender]++;
         itemId++;
@@ -103,7 +101,7 @@ contract NFTStore {
     function getItemsCreatedByUser(address caller) public view returns(Item[] memory){
         uint256 count = addressToItemsCount[caller];
         Item[] memory items = new Item[](count);
-        for (uint256 index = 0; index < itemId; index++) {
+        for (uint256 index = 0; index <= itemId; index++) {
             if (idToItem[index].creator == caller) {   
                 items[index] = idToItem[index];
             }
@@ -121,24 +119,34 @@ contract NFTStore {
         require(success, "Unable to put item for sale");
     }
 
-    function buyItem(uint256 id, address buyer) public payable {
+    function buyItem(uint256 id) public payable {
         Item memory item = idToItem[id];
-        require(item.owner != buyer, "You already own this item");
+        require(item.isSelling, "Item is not being sold");
+        require(item.owner != msg.sender, "You already own this item");
         require(msg.value == item.price, "Invalid price value");
-        if(buyer != item.creator) {
-            uint256 royalty = msg.value * (item.royaltyPercent/100);
-            (bool royaltyGiven,) = item.creator.call{value: royalty}("");
+        if(msg.sender != item.creator) {
+            (bool royaltyGiven,) = item.creator.call{value: (msg.value/100) * item.royaltyPercent}("");
             require(royaltyGiven, "Unable to proceed without paying royalty to the creator");
         }
-        address currentOwner = IERC721(item.nftContract).ownerOf(item.tokenId);
-        IERC721(item.nftContract).transferFrom(currentOwner, buyer, item.tokenId);
+        // address currentOwner = IERC721(item.nftContract).ownerOf(item.tokenId);
+        // require(currentOwner == item.owner, "Item owner not valid");
+        // IERC721(item.nftContract).transferFrom(item.owner, buyer, item.tokenId);
 
         // (bool transferred,) = item.nftContract.delegatecall(
         //     abi.encodeWithSignature("transferFrom(address,address,bool)", item.owner, buyer, item.tokenId)
         // );
         // require(transferred, "Unable to transfer token");
-        idToItem[id].owner = payable(buyer);
+        idToItem[id].isSelling = false;
+        idToItem[id].owner = payable(msg.sender);
         addressToItemsCount[item.owner]--;
-        addressToItemsCount[buyer]++;
+        addressToItemsCount[msg.sender]++;
+    }
+
+    function changeSellingStatus(uint256 id, bool status) public payable {
+        Item memory item = idToItem[id];
+        address tokenOwner = IERC721(item.nftContract).ownerOf(idToItem[id].tokenId);
+        require(msg.sender == tokenOwner, "Only owner can change the selling status");
+        idToItem[id].isSelling = status;
+        require(idToItem[id].isSelling == status, "Unable to change the status");
     }
 }

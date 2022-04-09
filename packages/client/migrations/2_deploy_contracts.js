@@ -4,7 +4,7 @@ const nftMarket = artifacts.require("NFTMarket");
 const crypt = artifacts.require("CRYPT");
 const nftStore = artifacts.require("NFTStore");
 
-const dummyAddr = "0x3b1194691A7a118D44d3f851440d8071AE5FcC34";
+const dummyAddr = "0x9dA31D03D49F3c35759c5469f3830338da66F04C";
 
 module.exports = async function (deployer) {
   await deployer.deploy(Transfer);

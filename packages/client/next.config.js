@@ -15,5 +15,6 @@ module.exports = {
   MEDIA_BASE_URL: process.env.MEDIA_BASE_URL,
   env: {
     MEDIA_BASE_URL: process.env.MEDIA_BASE_URL,
+    CONTRACTS_ABI_URL: process.env.CONTRACTS_ABI_URL
   },
 };

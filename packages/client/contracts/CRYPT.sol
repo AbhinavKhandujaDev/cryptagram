@@ -4,16 +4,17 @@ pragma solidity ^0.8.11;
 import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "./NFTStore.sol";
 
 contract CRYPT is ERC721URIStorage {
     uint256 private tokenId;
-    address private storeAddress;
+    address private storeOwner;
 
     event random(string msg, address addr);
 
     constructor(address marketplaceAddress) ERC721("Cryptverse", "CRYPT") {
         tokenId = 0;
-        storeAddress = marketplaceAddress;
+        storeOwner = marketplaceAddress;
     }
 
     function getLastTokenId() public view returns(uint256) {
@@ -21,38 +22,34 @@ contract CRYPT is ERC721URIStorage {
         return nToken;
     }
     
-    function getStoreAddress() public view returns(address) {
-        return storeAddress;
+    function getStoreOwner() public view returns(address) {
+        return storeOwner;
     }
 
-    // function createToken(string calldata tokenURI, address approves) public returns(uint256) {
-    //     uint256 newItemId = tokenId;
-
-    //     // _safeMint protects token to be recreated if already created based on tokenId
-    //     _safeMint(approves, newItemId);
-
-    //     // setting the image/media url to the token
-    //     _setTokenURI(newItemId, tokenURI);
-
-    //     // without setApprovalForAll NFTMarket does not have authority to transfer the token's ownership on ite's behalf
-    //     // setApprovalForAll(approves, true);
-    //     // approve(approves, newItemId);
-
-    //     tokenId++;
-    //     return newItemId;
-    // }
-
-    function createToken(string calldata tokenURI) public {
+    function createToken(string calldata tokenURI, address creator) public returns(uint256) {
         uint256 newItemId = tokenId;
 
         // _safeMint protects token to be recreated if already created based on tokenId
-        _safeMint(msg.sender, newItemId);
+        _safeMint(creator, newItemId);
 
         // setting the image/media url to the token
         _setTokenURI(newItemId, tokenURI);
 
         tokenId++;
+
+        return newItemId;
     }
+    // function createToken(string calldata tokenURI) public {
+    //     uint256 newItemId = tokenId;
+
+    //     // _safeMint protects token to be recreated if already created based on tokenId
+    //     _safeMint(msg.sender, newItemId);
+
+    //     // setting the image/media url to the token
+    //     _setTokenURI(newItemId, tokenURI);
+
+    //     tokenId++;
+    // }
 
     function isApprovedForAll(address owner, address operator)
         public
@@ -62,13 +59,14 @@ contract CRYPT is ERC721URIStorage {
         returns (bool) 
     {
         // preapproved marketplace
-        return super.isApprovedForAll(owner, operator) || true;//operator == storeAddress;
+        require(operator == storeOwner || operator == owner, "operator != storeAddress");
+        return super.isApprovedForAll(owner, operator) || operator == storeOwner;
     }
 
-    function getTokenURI(uint256 token) public view returns(string memory) {
-        require(token >= 0, "Token id is required");
-        require(msg.sender != address(0), "Account address id is required");
-        string memory uri = tokenURI(token);
-        return uri;
+    function transferToken(uint256 id, address buyer) public payable {
+        address currentOwner = ownerOf(id);
+        transferFrom(currentOwner, buyer, id);
+        address newOwner = ownerOf(id);
+        require(newOwner == buyer, "Token not transferred");
     }
 }

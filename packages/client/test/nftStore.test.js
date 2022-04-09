@@ -20,7 +20,7 @@ const CRYPT = artifacts.require("./CRYPT.sol");
 
 require("chai").use(require("chai-as-promised")).should();
 
-contract("Transfer", ([deployer, user, user2, user3]) => {
+contract("NFT Store", ([deployer, user, user2, user3, user4, user5]) => {
   let nft, nftStore, creator;
   let uri =
     "https://images.unsplash.com/photo-1599580506193-fef9dc35b205?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=871&q=80";
@@ -31,46 +31,42 @@ contract("Transfer", ([deployer, user, user2, user3]) => {
     nft = await CRYPT.new(deployer);
   });
 
-  async function buy(owner, buyer) {
+  async function buy(buyer) {
     let itemId = 0;
     let item = await nftStore.getItemById(itemId);
-    // await nft.setApprovalForAll(deployer, true, { from: owner });
-    let isApproved = await nft.isApprovedForAll(owner, deployer);
-    assert.equal(isApproved, true, "Operator in not approved");
-    await nftStore.buyItem(itemId, buyer, {
-      from: deployer,
-      value: item.price,
+    let nftOwner = await nft.ownerOf(item.tokenId);
+    await nftStore.changeSellingStatus(item.itemId, true, { from: nftOwner });
+    item = await nftStore.getItemById(itemId);
+    assert.equal(nftOwner, item.owner, "Invalid owner");
+    let amount = await web3.utils.toWei(item.price.toString(), "wei");
+    assert.equal(item.isSelling, true, "Selling status should be 'true'");
+    await nftStore.buyItem(item.itemId, {
+      from: buyer,
+      value: amount,
     });
+    await nft.transferToken(item.itemId, buyer, { from: deployer });
+
+    nftOwner = await nft.ownerOf(item.tokenId);
+    await nftStore.changeSellingStatus(item.itemId, false, { from: nftOwner });
     let userOwnedItems = await nftStore.getItemsOwnedByUser(buyer);
     assert.equal(userOwnedItems.length, 1, "Invalid item count");
     item = await nftStore.getItemById(itemId);
-    assert.equal(item.owner, buyer, "Invalid owner");
+    assert.equal(item.isSelling, false, "Selling status should be 'false'");
   }
-  async function buy2(owner, buyer) {
-    let itemId = 0;
-    let item = await nftStore.getItemById(itemId);
-    await nftStore.putItemForSale(itemId, { from: owner });
-    await nftStore.buyItem(itemId, buyer, {
-      from: deployer,
-      value: item.price,
-    });
-    let userOwnedItems = await nftStore.getItemsOwnedByUser(buyer);
-    assert.equal(userOwnedItems.length, 1, "Invalid item count");
+
+  function checkDeployed(address) {
+    assert.notEqual(address, 0x0);
+    assert.notEqual(address, "");
+    assert.notEqual(address, null);
+    assert.notEqual(address, undefined);
   }
 
   describe("CRYPT Market Test", async () => {
     it("deployed successfully", async () => {
       const nftaddress = await nft.address;
       const nftMaddress = await nftStore.address;
-      assert.notEqual(nftaddress, 0x0);
-      assert.notEqual(nftaddress, "");
-      assert.notEqual(nftaddress, null);
-      assert.notEqual(nftaddress, undefined);
-
-      assert.notEqual(nftMaddress, 0x0);
-      assert.notEqual(nftMaddress, "");
-      assert.notEqual(nftMaddress, null);
-      assert.notEqual(nftMaddress, undefined);
+      checkDeployed(nftaddress);
+      checkDeployed(nftMaddress);
     });
 
     it("create item", async () => {
@@ -81,9 +77,18 @@ contract("Transfer", ([deployer, user, user2, user3]) => {
       let tId = await nft.getLastTokenId();
       let owner = await nft.ownerOf(tId);
       assert.equal(owner, creator, "invalid token owner");
-      await nftStore.createItem(nftaddress, uri, "Test", amount, tId, 25, {
-        from: creator,
-      });
+      await nftStore.createItem(
+        nftaddress,
+        uri,
+        "Test",
+        amount,
+        tId,
+        25,
+        true,
+        {
+          from: creator,
+        }
+      );
 
       let tokenUri = await nft.tokenURI(0);
       assert.equal(uri, tokenUri);
@@ -116,57 +121,12 @@ contract("Transfer", ([deployer, user, user2, user3]) => {
     });
 
     it("buy items", async () => {
-      // let itemId = 0;
-      // let item = await nftStore.getItemById(itemId);
-      //   await nftStore.putItemForSale(itemId, { from: creator });
-      //   await nftStore.buyItem(itemId, user, {
-      //     from: deployer,
-      //     value: item.price,
-      //   });
-      //   let userOwnedItems = await nftStore.getItemsOwnedByUser(user);
-      //   assert.equal(userOwnedItems.length, 1, "Invalid item count");
-      await buy(creator, user);
-      await buy(user, user3);
-      // await buy2(user, user3);
+      await buy(user);
+      let item = await nftStore.getItemById(0);
+      console.log("new Item ==> ", item);
+      await buy(user3);
+      await buy(user4);
+      await buy(user5);
     });
-
-    // it("buy items", async () => {
-    //   await nftStore.sellMarketItem(0, {
-    //     from: user,
-    //     value: 25 * 10 ** 15,
-    //   });
-    //   let items = await nftStore.getMarketItems();
-    //   items.forEach((item) => {
-    //     assert.equal(
-    //       item[4],
-    //       user,
-    //       "userItems bought are not similar to Items"
-    //     );
-    //     assert.equal(item[8], false, "item should not be in selling state");
-    //   });
-
-    //   // Other user cannot buy item unless the owner changes selling status
-    //   await nftStore.sellMarketItem(0, {
-    //     from: deployer,
-    //     value: 25 * 10 ** 15,
-    //   }).should.be.rejected;
-    // });
-
-    // it("change selling status", async () => {
-    //   let owner = await nft.ownerOf(0);
-    //   assert.equal(owner, user, "token owner is not user");
-    //   console.log("owner ===> ", owner);
-    //   await nftStore.changeSellingStatus(0, { from: user });
-    //   let items = await nftStore.getMarketItems();
-    //   console.log("items are ===> ", items);
-    //   let cAddr = await nftStore.getContAddr();
-    //   console.log("cAddr is ===> ", cAddr);
-    //   console.log("nftStore is ===> ", nftStore.address);
-    //   console.log("deployer is ===> ", deployer);
-    //   await nftStore.sellMarketItem(0, {
-    //     from: deployer,
-    //     value: 25 * 10 ** 15,
-    //   });
-    // });
   });
 });

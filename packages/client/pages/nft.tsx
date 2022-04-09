@@ -21,10 +21,15 @@ const Nft: NextPage = (props: any) => {
     itemCreatedByUser,
     itemsCollected,
     buyItem,
+    changeSellStatus,
     loaded,
   } = nft();
 
-  const { accs } = wallet();
+  const { accs, primaryAddress } = wallet();
+
+  useEffect(() => {
+    console.log("primaryAddress ==> ", primaryAddress);
+  }, [primaryAddress]);
 
   const [state, setState] = useState<NFTPageState>({
     selected: 0,
@@ -34,8 +39,7 @@ const Nft: NextPage = (props: any) => {
   });
 
   const getNftItem = useCallback(
-    async (item: any) => {
-      let uri = await getTokenUri(item.itemId);
+    (item: any) => {
       let nft: NFTItem = {
         itemId: item.itemId,
         name: item.name,
@@ -44,9 +48,9 @@ const Nft: NextPage = (props: any) => {
         owner: item.owner,
         creator: item.creator,
         price: web3.utils.fromWei(item.price, "ether"),
-        royalityFee: item.royalityFee,
+        royalityFee: item.royaltyFee,
         isSelling: item.isSelling,
-        uri: typeof uri === "string" ? uri : "",
+        uri: item.uri,
       };
       return nft;
     },
@@ -57,7 +61,8 @@ const Nft: NextPage = (props: any) => {
     loaded &&
       (async () => {
         let items = await fetchItems();
-        let nftItems: NFTItem[] = await Promise.all(items.map(getNftItem));
+        // let nftItems: NFTItem[] = await Promise.all(items.map(getNftItem));
+        let nftItems: NFTItem[] = items.map(getNftItem);
         setState((prev) => ({ ...prev, nftItems }));
       })();
   }, [loaded]);
@@ -70,6 +75,16 @@ const Nft: NextPage = (props: any) => {
         let items = await itemCreatedByUser();
         let created: NFTItem[] = await Promise.all(items.map(getNftItem));
         setState((prev) => ({ ...prev, created }));
+      })();
+  }, [loaded, state.selected]);
+
+  useEffect(() => {
+    loaded &&
+      state.selected === 1 &&
+      (async () => {
+        let items = await itemsCollected();
+        let collected: NFTItem[] = await Promise.all(items.map(getNftItem));
+        setState((prev) => ({ ...prev, collected }));
       })();
   }, [loaded, state.selected]);
 
@@ -112,6 +127,28 @@ const Nft: NextPage = (props: any) => {
     },
     [loaded, state.nftItems]
   );
+  const sellingSwitch = useCallback(
+    async (item: NFTItem) => {
+      item.owner.toLowerCase() !== primaryAddress?.toLowerCase() &&
+        showToast.error("Only owner can change the status");
+      changeSellStatus(item)
+        .then(() => {
+          showToast.success("Status changed");
+          setState((prev) => ({
+            ...prev,
+            nftItems: prev.nftItems.map((o) => {
+              if (o.itemId === item.itemId) {
+                let nObj = { ...o, isSelling: !o.isSelling };
+                return nObj;
+              }
+              return o;
+            }),
+          }));
+        })
+        .catch(() => showToast.error("Unable to change the status"));
+    },
+    [accs]
+  );
   const notFound = useCallback(
     (text: string) => (
       <label className="fs-1 w-100 text-center text-muted">{text}</label>
@@ -119,24 +156,48 @@ const Nft: NextPage = (props: any) => {
     []
   );
 
+  let itemList = useMemo(() => {
+    switch (state.selected) {
+      case 0:
+        return state.nftItems;
+      case 1:
+        return state.collected;
+      case 2:
+        return state.created;
+      default:
+        return state.nftItems;
+    }
+  }, [
+    state.nftItems,
+    state.collected,
+    state.created,
+    state.selected,
+    primaryAddress,
+  ]);
+
   let nftList = useMemo(() => {
     return state.nftItems?.length > 0
       ? state.nftItems.map((item: NFTItem, i: number) => (
           <NFTPost
-            walletAddr={accs[0]}
+            walletAddr={primaryAddress}
             key={item.itemId}
             id={i}
             item={item}
             buy={buy}
+            onSellingChange={sellingSwitch}
           />
         ))
       : notFound("No items found");
-  }, [state.nftItems, accs]);
+  }, [state.nftItems, accs, primaryAddress]);
 
   let collectedList = useMemo(() => {
     return state.collected?.length > 0
       ? state.collected.map((item: NFTItem) => (
-          <NFTPost key={item.itemId} item={item} />
+          <NFTPost
+            key={item.itemId}
+            item={item}
+            onSellingChange={sellingSwitch}
+          />
         ))
       : notFound("No items found");
   }, [state.collected]);
@@ -144,10 +205,29 @@ const Nft: NextPage = (props: any) => {
   let createdList = useMemo(() => {
     return state.created?.length > 0
       ? state.created.map((item: NFTItem) => (
-          <NFTPost key={item.itemId} item={item} />
+          <NFTPost
+            key={item.itemId}
+            item={item}
+            onSellingChange={sellingSwitch}
+          />
         ))
       : notFound("No items found");
   }, [state.created]);
+
+  let listToShow = useMemo(() => {
+    return itemList.length > 0
+      ? itemList.map((item: NFTItem, i: number) => (
+          <NFTPost
+            walletAddr={primaryAddress}
+            key={item.itemId}
+            id={i}
+            item={item}
+            buy={buy}
+            onSellingChange={sellingSwitch}
+          />
+        ))
+      : notFound("No items found");
+  }, [itemList, primaryAddress]);
 
   return (
     <div id="nft" className="page py-5 flex-center-c justify-content-start">
@@ -158,7 +238,10 @@ const Nft: NextPage = (props: any) => {
         onSelect={(index: number) => setState({ ...state, selected: index })}
       />
       <div className="h-100 w-100 flex-grow-1" style={{ maxWidth: "1400px" }}>
-        {state.selected === 0 && (
+        {state.selected !== 3 && (
+          <div className="row w-100 my-3 mx-0 flex-center-h">{listToShow}</div>
+        )}
+        {/* {state.selected === 0 && (
           <div className="row w-100 my-3 mx-0 flex-center-h">{nftList}</div>
         )}
         {state.selected === 1 && (
@@ -168,7 +251,7 @@ const Nft: NextPage = (props: any) => {
         )}
         {state.selected === 2 && (
           <div className="row w-100 my-3 mx-0 flex-center-h">{createdList}</div>
-        )}
+        )} */}
         {state.selected === 3 && (
           <div className="w-100 flex-center-h py-5">
             <div className="col-10 col-md-5 col-lg-4">

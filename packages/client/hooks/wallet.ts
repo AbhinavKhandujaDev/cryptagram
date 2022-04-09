@@ -1,10 +1,12 @@
 import Web3 from "web3";
-import { useRef, useEffect } from "react";
-import Transfer from "../abis/Transfer.json";
+import { useRef, useEffect, useState } from "react";
+// import Transfer from "../abis/Transfer.json";
+import api from "../helper/api";
 
 function wallet() {
   const tcontract = useRef<any>();
   const accountsRef = useRef<any>();
+  const [primaryAddress, setPrimaryAddress] = useState<any | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -12,6 +14,11 @@ function wallet() {
       await loadContract();
       let accounts = await window.ethereum.request({ method: "eth_accounts" });
       accountsRef.current = accounts;
+      setPrimaryAddress(accounts[0]);
+      window.ethereum?.on("accountsChanged", function (accs: any) {
+        let acc = accs[0] ? accs[0] : accounts[0];
+        setPrimaryAddress(acc);
+      });
     })();
   }, []);
 
@@ -22,8 +29,13 @@ function wallet() {
   };
 
   const loadContract = async () => {
+    if (tcontract.current !== undefined) return;
     const networkId = await window.web3.eth.net.getId();
-    const transfer = Transfer as any;
+    let abi = await api.post(process.env.CONTRACTS_ABI_URL || "", {
+      body: ["Transfer"],
+      headers: { "Content-Type": "application/json" },
+    });
+    const transfer = abi["Transfer"]; //Transfer as any;
     const networkData = transfer.networks[networkId];
     if (networkData) {
       const contrct = new window.web3.eth.Contract(
@@ -44,10 +56,10 @@ function wallet() {
     if (ethWin) {
       window.web3 = new Web3(ethWin);
       await ethWin.enable();
-      await loadContract();
+      // await loadContract();
     } else if (window.web3) {
       window.web3 = new Web3(window.web3.currentProvider);
-      await loadContract();
+      // await loadContract();
     } else {
       window.alert("No ethereum browser detected checkout MetaMask!");
     }
@@ -96,6 +108,7 @@ function wallet() {
     }
   };
   return {
+    primaryAddress,
     accounts,
     accs: accountsRef.current,
     loadWallet,

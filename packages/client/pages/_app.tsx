@@ -126,6 +126,7 @@ function MyApp({ Component, pageProps, router }: AppProps | any) {
           switchTheme={toggleNight}
           status={pagesStatus}
           user={user}
+          isNFT={router.pathname.includes("nft")}
         />
       )}
       <Component {...pageProps} nightmode={nightmode} user={user} />

@@ -6,6 +6,7 @@
     "dev": "lerna run dev",
     "dev-web": "lerna run dev --scope=client",
     "dev-server": "lerna run dev --scope=server",
+    "dev-contracts": "lerna run dev --scope=smart-contracts",
     "new-version": "lerna version --conventional-commits --yes",
     "diff": "lerna diff"
   },
