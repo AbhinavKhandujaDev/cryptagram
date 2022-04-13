@@ -21,7 +21,7 @@ app.post("/api/contracts", (req, res) => {
       );
       abi[contract] = JSON.parse(rawdata);
     });
-    return res.status(200).send({ ...abi });
+    return res.status(200).send({ success: true, data: { ...abi } });
   } catch (error) {
     return res.status(400).send({ error: { message: "contract not found" } });
   }

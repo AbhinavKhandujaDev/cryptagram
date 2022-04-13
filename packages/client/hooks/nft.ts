@@ -1,11 +1,14 @@
 import Web3 from "web3";
-import NFT from "../abis/CRYPT.json";
-import NFTStore from "../abis/NFTStore.json";
+// import NFT from "../abis/CRYPT.json";
+// import NFTStore from "../abis/NFTStore.json";
 import { useRef, useCallback, useEffect, useState, useMemo } from "react";
 import wallet from "./wallet";
 import { NFTItem } from "../interfaces";
+import { ReduxState } from "../redux/types";
+import { useSelector } from "react-redux";
 
 function nft() {
+  const reduxState = useSelector((state: ReduxState) => state);
   const { loadWallet, accounts, primaryAddress } = wallet();
   const nftCont = useRef<any>();
   const nftStoreCont = useRef<any>();
@@ -38,8 +41,8 @@ function nft() {
   };
 
   const loadNftContracts = async () => {
-    const nft = NFT as any;
-    const nftMarket = NFTStore as any;
+    const nft = reduxState.abi.cryptNft as any;
+    const nftMarket = reduxState.abi.nftStore as any;
     nftCont.current = await setContract(nft);
     nftStoreCont.current = await setContract(nftMarket);
   };

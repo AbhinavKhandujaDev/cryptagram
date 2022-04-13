@@ -1,10 +1,10 @@
 import { memo } from "react";
 
 const Spinner = (props: any) => {
-  const { size = "sm", color = "white" } = props;
+  const { type = "border", size = "sm", color = "white", cls } = props;
   return (
     <span
-      className={`spinner-border text-${color} spinner-border-${size}`}
+      className={`spinner-${type} text-${color} spinner-${type}-${size} ${cls}`}
       role="status"
       aria-hidden="true"
     />

@@ -5,7 +5,7 @@ import "../node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
-import "./CRYPT.sol";
+import "./CRYPTNFT.sol";
 
 contract NFTStore {
 
@@ -58,7 +58,7 @@ contract NFTStore {
     ) public payable lockEntry {
         require(price > 0, "Price must be at least 1 wei");
         address payable creator = payable(msg.sender);
-        uint256 tId = CRYPT(nftContract).createToken(uri, creator);
+        uint256 tId = CRYPTNFT(nftContract).createToken(uri, creator);
         idToItem[itemId] = Item(
             itemId, 
             name, 
@@ -112,7 +112,7 @@ contract NFTStore {
     function putItemForSale(uint256 id) public {
         Item memory item = idToItem[id];
         require(item.owner == msg.sender, "Only owner can put the item for sale");
-        // CRYPT(item.nftContract).setApprovalForAll(address(this), true);
+        // CRYPTNFT(item.nftContract).setApprovalForAll(address(this), true);
         (bool success,) = item.nftContract.delegatecall(
             abi.encodeWithSignature("setApprovalForAll(address,bool)", marketOwner ,true)
         );

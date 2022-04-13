@@ -1,9 +1,10 @@
 import Web3 from "web3";
 import { useRef, useEffect, useState } from "react";
-// import Transfer from "../abis/Transfer.json";
-import api from "../helper/api";
+import { ReduxState, ABI } from "../redux/types";
+import { useSelector } from "react-redux";
 
 function wallet() {
+  const reduxState = useSelector((state: ReduxState) => state);
   const tcontract = useRef<any>();
   const accountsRef = useRef<any>();
   const [primaryAddress, setPrimaryAddress] = useState<any | null>(null);
@@ -31,11 +32,7 @@ function wallet() {
   const loadContract = async () => {
     if (tcontract.current !== undefined) return;
     const networkId = await window.web3.eth.net.getId();
-    let abi = await api.post(process.env.CONTRACTS_ABI_URL || "", {
-      body: ["Transfer"],
-      headers: { "Content-Type": "application/json" },
-    });
-    const transfer = abi["Transfer"]; //Transfer as any;
+    const transfer = reduxState.abi.transfer;
     const networkData = transfer.networks[networkId];
     if (networkData) {
       const contrct = new window.web3.eth.Contract(

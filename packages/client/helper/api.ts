@@ -42,7 +42,7 @@ export const call = async (
       }
     }
     return Promise.reject({
-      message: error.props?.title || "Something went wrong",
+      message: error.props?.title ?? "Something went wrong",
       success: false,
     });
   }

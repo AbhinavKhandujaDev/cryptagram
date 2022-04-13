@@ -1,17 +1,19 @@
 const Transfer = artifacts.require("Transfer");
 const nft = artifacts.require("NFT");
 const nftMarket = artifacts.require("NFTMarket");
-const crypt = artifacts.require("CRYPT");
+const crypt = artifacts.require("CRYPTNFT");
 const nftStore = artifacts.require("NFTStore");
 
-const dummyAddr = "0x9dA31D03D49F3c35759c5469f3830338da66F04C";
-
-module.exports = async function (deployer) {
+module.exports = async function (deployer, network, accounts) {
   await deployer.deploy(Transfer);
   await deployer.deploy(nftMarket);
-  await deployer.deploy(nftStore, dummyAddr);
-  await deployer.deploy(crypt, dummyAddr);
+  await deployer.deploy(nftStore, accounts[0]);
+  await deployer.deploy(crypt, accounts[0]);
 
+  // if (network === "ethTestnet") {
+  //   let cryptToken = await crypt.deployed();
+  //   cryptToken.mint(accounts[0], 1000);
+  // }
   let market = await nftMarket.deployed();
   await deployer.deploy(nft, market.address);
 

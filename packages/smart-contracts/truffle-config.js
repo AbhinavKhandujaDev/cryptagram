@@ -1,8 +1,32 @@
 require("babel-register");
 require("babel-polyfill");
 
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+
+const mnemonic =
+  "split axis exist miracle have input kite stock laugh govern property call";
+
 module.exports = {
   networks: {
+    // ethTestnet: {
+    //   provider: function () {
+    //     return new HDWalletProvider(
+    //       mnemonic,
+    //       "https://rinkeby.infura.io/v3/090db3e9e87c41069d9e524a34e4e112"
+    //     );
+    //   },
+    //   network_id: 4,
+    //   skipDryRun: true,
+    // },
+    // bscTestnet: {
+    //   provider: () =>
+    //     new HDWalletProvider(
+    //       mnemonic,
+    //       `https://data-seed-prebsc-1-s1.binance.org:8545`
+    //     ),
+    //   network_id: 97,
+    //   skipDryRun: true,
+    // },
     development: {
       host: "127.0.0.1",
       port: 7545,

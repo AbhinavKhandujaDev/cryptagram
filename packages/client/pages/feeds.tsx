@@ -102,7 +102,7 @@ const Feeds: NextPage = (props: any) => {
         return;
       }
       try {
-        await loadWallet();
+        // await loadWallet();
         let accs = await accounts();
         // console.log(contract);
         // console.log(user);

@@ -16,7 +16,7 @@
 // royaltyPercent: '25'
 
 const NftStore = artifacts.require("./NFTStore.sol");
-const CRYPT = artifacts.require("./CRYPT.sol");
+const CRYPTNFT = artifacts.require("./CRYPTNFT.sol");
 
 require("chai").use(require("chai-as-promised")).should();
 
@@ -28,7 +28,7 @@ contract("NFT Store Test", ([deployer, user, user2, user3, user4, user5]) => {
   before(async () => {
     creator = user2;
     nftStore = await NftStore.new(deployer);
-    nft = await CRYPT.new(deployer);
+    nft = await CRYPTNFT.new(deployer);
   });
 
   async function buy(buyer) {
